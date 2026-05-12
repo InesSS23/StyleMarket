@@ -1,4 +1,4 @@
-function SellerDashboard() {
+function DashboardVendedor() {
   return (
     <div className="container py-5">
       <h1>Dashboard do Vendedor</h1>
@@ -7,4 +7,4 @@ function SellerDashboard() {
   );
 }
 
-export default SellerDashboard;
+export default DashboardVendedor;

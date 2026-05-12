@@ -1,8 +1,4 @@
-/*
-resgitro para comprador ou vendedor - figma
-*/
-
-function Register() {
+function Registo() {
   return (
     <div className="container py-5">
       <h1>Registo</h1>
@@ -11,4 +7,4 @@ function Register() {
   );
 }
 
-export default Register;
+export default Registo;

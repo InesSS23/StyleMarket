@@ -1,7 +1,3 @@
-/*
-logina para comprador - vendedor e administrador - figma
-*/
-
 function Login() {
   return (
     <div className="container py-5">

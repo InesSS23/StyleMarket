@@ -11,3 +11,21 @@ body {
 a {
   text-decoration: none;
 }
+
+.layout-dashboard {
+  min-height: 100vh;
+}
+
+.sidebar-dashboard {
+  width: 260px;
+  min-height: 100vh;
+}
+
+.sidebar-dashboard .nav-link {
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.sidebar-dashboard .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}

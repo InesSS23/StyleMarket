@@ -1,5 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
+import LayoutPrincipal from "./layouts/LayoutPrincipal";
+import LayoutVendedor from "./layouts/LayoutVendedor";
+import LayoutAdmin from "./layouts/LayoutAdmin";
+
 import Home from "./pages/comprador/Home";
 import Catalogo from "./pages/comprador/Catalogo";
 import DetalhesProduto from "./pages/comprador/DetalhesProduto";
@@ -24,25 +28,31 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/catalogo" element={<Catalogo />} />
-        <Route path="/produto/:id" element={<DetalhesProduto />} />
-        <Route path="/carrinho" element={<Carrinho />} />
-        <Route path="/finalizar-compra" element={<FinalizarCompra />} />
+        <Route path="/" element={<LayoutPrincipal />}>
+          <Route index element={<Home />} />
+          <Route path="catalogo" element={<Catalogo />} />
+          <Route path="produto/:id" element={<DetalhesProduto />} />
+          <Route path="carrinho" element={<Carrinho />} />
+          <Route path="finalizar-compra" element={<FinalizarCompra />} />
+        </Route>
 
         <Route path="/login" element={<Login />} />
         <Route path="/registo" element={<Registo />} />
 
-        <Route path="/vendedor/dashboard" element={<DashboardVendedor />} />
-        <Route path="/vendedor/produtos" element={<ProdutosVendedor />} />
-        <Route path="/vendedor/adicionar-produto" element={<AdicionarProduto />} />
-        <Route path="/vendedor/editar-produto/:id" element={<EditarProduto />} />
+        <Route path="/vendedor" element={<LayoutVendedor />}>
+          <Route path="dashboard" element={<DashboardVendedor />} />
+          <Route path="produtos" element={<ProdutosVendedor />} />
+          <Route path="adicionar-produto" element={<AdicionarProduto />} />
+          <Route path="editar-produto/:id" element={<EditarProduto />} />
+        </Route>
 
-        <Route path="/admin/dashboard" element={<DashboardAdmin />} />
-        <Route path="/admin/utilizadores" element={<GerirUtilizadores />} />
-        <Route path="/admin/produtos" element={<GerirProdutos />} />
-        <Route path="/admin/categorias" element={<GerirCategorias />} />
-        <Route path="/admin/encomendas" element={<GerirEncomendas />} />
+        <Route path="/admin" element={<LayoutAdmin />}>
+          <Route path="dashboard" element={<DashboardAdmin />} />
+          <Route path="utilizadores" element={<GerirUtilizadores />} />
+          <Route path="produtos" element={<GerirProdutos />} />
+          <Route path="categorias" element={<GerirCategorias />} />
+          <Route path="encomendas" element={<GerirEncomendas />} />
+        </Route>
       </Routes>
     </Router>
   );

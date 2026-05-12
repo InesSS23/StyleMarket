@@ -1,4 +1,4 @@
-function AddProduct() {
+function AdicionarProduto() {
   return (
     <div className="container py-5">
       <h1>Adicionar Produto</h1>
@@ -7,4 +7,4 @@ function AddProduct() {
   );
 }
 
-export default AddProduct;
+export default AdicionarProduto;
