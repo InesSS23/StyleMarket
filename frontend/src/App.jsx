@@ -1,79 +1,48 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-/*
-  Nesta fase inicial, vamos criar páginas simples.
-  Depois vamos substituir cada página pelo design completo.
-*/
+import Home from "./pages/comprador/Home";
+import Catalogo from "./pages/comprador/Catalogo";
+import DetalhesProduto from "./pages/comprador/DetalhesProduto";
+import Carrinho from "./pages/comprador/Carrinho";
+import FinalizarCompra from "./pages/comprador/FinalizarCompra";
 
-function Home() {
-  return (
-    <div className="container py-5">
-      <h1>StyleMarket</h1>
-      <p>Plataforma de venda de roupas online.</p>
-    </div>
-  );
-}
+import Login from "./pages/Login";
+import Registo from "./pages/Registo";
 
-function Catalog() {
-  return (
-    <div className="container py-5">
-      <h1>Catálogo</h1>
-      <p>Lista de roupas disponíveis.</p>
-    </div>
-  );
-}
+import DashboardVendedor from "./pages/vendedor/DashboardVendedor";
+import ProdutosVendedor from "./pages/vendedor/ProdutosVendedor";
+import AdicionarProduto from "./pages/vendedor/AdicionarProduto";
+import EditarProduto from "./pages/vendedor/EditarProduto";
 
-function Login() {
-  return (
-    <div className="container py-5">
-      <h1>Login</h1>
-      <p>Entrada única para comprador, vendedor e administrador.</p>
-    </div>
-  );
-}
-
-function Register() {
-  return (
-    <div className="container py-5">
-      <h1>Registo</h1>
-      <p>Registo para comprador ou vendedor.</p>
-    </div>
-  );
-}
-
-function SellerDashboard() {
-  return (
-    <div className="container py-5">
-      <h1>Dashboard do Vendedor</h1>
-      <p>Área para gerir produtos e vendas.</p>
-    </div>
-  );
-}
-
-function AdminDashboard() {
-  return (
-    <div className="container py-5">
-      <h1>Dashboard do Administrador</h1>
-      <p>Área para gerir utilizadores, produtos, categorias e encomendas.</p>
-    </div>
-  );
-}
-
-/*
-  O App define as rotas principais da aplicação.
-  Nesta primeira fase, só queremos confirmar que a navegação funciona.
-*/
+import DashboardAdmin from "./pages/admin/DashboardAdmin";
+import GerirUtilizadores from "./pages/admin/GerirUtilizadores";
+import GerirProdutos from "./pages/admin/GerirProdutos";
+import GerirCategorias from "./pages/admin/GerirCategorias";
+import GerirEncomendas from "./pages/admin/GerirEncomendas";
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/catalogo" element={<Catalog />} />
+        <Route path="/catalogo" element={<Catalogo />} />
+        <Route path="/produto/:id" element={<DetalhesProduto />} />
+        <Route path="/carrinho" element={<Carrinho />} />
+        <Route path="/finalizar-compra" element={<FinalizarCompra />} />
+
         <Route path="/login" element={<Login />} />
-        <Route path="/registo" element={<Register />} />
-        <Route path="/vendedor/dashboard" element={<SellerDashboard />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/registo" element={<Registo />} />
+
+        <Route path="/vendedor/dashboard" element={<DashboardVendedor />} />
+        <Route path="/vendedor/produtos" element={<ProdutosVendedor />} />
+        <Route path="/vendedor/adicionar-produto" element={<AdicionarProduto />} />
+        <Route path="/vendedor/editar-produto/:id" element={<EditarProduto />} />
+
+        <Route path="/admin/dashboard" element={<DashboardAdmin />} />
+        <Route path="/admin/utilizadores" element={<GerirUtilizadores />} />
+        <Route path="/admin/produtos" element={<GerirProdutos />} />
+        <Route path="/admin/categorias" element={<GerirCategorias />} />
+        <Route path="/admin/encomendas" element={<GerirEncomendas />} />
       </Routes>
     </Router>
   );
