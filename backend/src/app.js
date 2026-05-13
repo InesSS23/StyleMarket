@@ -22,6 +22,11 @@ app.get("/", (req, res) => {
   });
 });
 
+/* Rotas */
+const categoriaRoutes = require("./routes/categoriaRoute");
+
+app.use("/categorias", categoriaRoutes);
+
 /* Liga à base de dados e inicia o servidor */
 sequelize
   .sync()
