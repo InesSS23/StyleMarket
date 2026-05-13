@@ -2,27 +2,19 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+const { sequelize } = require("./models");
+
 const app = express();
 
-/*
-  Configuração da porta do servidor.
-  Se existir uma porta no ficheiro .env, usamos essa porta.
-  Caso contrário, usamos a porta 3000.
-*/
+/* Porta do servidor */
 app.set("port", process.env.PORT || 3000);
 
-/*
-  Middlewares principais da aplicação.
-  O cors permite a comunicação entre frontend e backend.
-  O express.json permite receber dados em formato JSON.
-*/
+/* Middlewares */
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/*
-  Rota inicial para testar se a API está a funcionar.
-*/
+/* Rota de teste */
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -30,9 +22,16 @@ app.get("/", (req, res) => {
   });
 });
 
-/*
-  Arranque do servidor.
-*/
-app.listen(app.get("port"), () => {
-  console.log("Servidor iniciado na porta " + app.get("port"));
-});
+/* Liga à base de dados e inicia o servidor */
+sequelize
+  .sync()
+  .then(() => {
+    console.log("Base de dados sincronizada com sucesso.");
+
+    app.listen(app.get("port"), () => {
+      console.log("Servidor iniciado na porta " + app.get("port"));
+    });
+  })
+  .catch((error) => {
+    console.log("Erro ao sincronizar a base de dados:", error);
+  });
