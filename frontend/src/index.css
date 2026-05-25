@@ -45,3 +45,10 @@ a {
 .catalog-search {
   min-width: 280px;
 }
+
+.detalhe-produto-imagem {
+  width: 100%;
+  max-height: 520px;
+  object-fit: cover;
+  background-color: #e9ecef;
+}
