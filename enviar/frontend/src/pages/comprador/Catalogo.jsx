@@ -7,6 +7,10 @@ function Catalogo() {
   const [pesquisa, setPesquisa] = useState("");
   const [erro, setErro] = useState("");
 
+  useEffect(() => {
+    carregarProdutos();
+  }, []);
+
   function carregarProdutos() {
     api
       .get("/produtos/listar")
@@ -21,10 +25,6 @@ function Catalogo() {
         setErro("Erro ao ligar ao servidor.");
       });
   }
-
-  useEffect(() => {
-    carregarProdutos();
-  }, []);
 
   const produtosFiltrados = produtos.filter((produto) =>
     produto.name.toLowerCase().includes(pesquisa.toLowerCase())
