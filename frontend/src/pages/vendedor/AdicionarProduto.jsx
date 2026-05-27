@@ -149,7 +149,7 @@ function AdicionarProduto() {
 
       {erro && <div className="alert alert-danger">{erro}</div>}
 
-      <form onSubmit={handleSubmit} className="row g-3">
+      <form onSubmit={handleSubmit} className="row g-3" autoComplete="off">
         <div className="col-12">
           <div className="card p-4">
             <div className="row g-3">
@@ -162,6 +162,7 @@ function AdicionarProduto() {
                   onChange={handleChange}
                   className="form-control"
                   placeholder="Ex: T-shirt Básica Branca"
+                  autoComplete="off"
                   required
                 />
               </div>
@@ -175,6 +176,7 @@ function AdicionarProduto() {
                   className="form-control"
                   rows={4}
                   placeholder="Descreve o produto em detalhe..."
+                  autoComplete="off"
                   required
                 />
               </div>
@@ -189,6 +191,7 @@ function AdicionarProduto() {
                   onChange={handleChange}
                   className="form-control"
                   placeholder="19.99"
+                  autoComplete="off"
                   required
                 />
               </div>
