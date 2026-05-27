@@ -25,9 +25,11 @@ app.get("/", (req, res) => {
 /* Rotas */
 const categoriaRoutes = require("./routes/categoriaRoute");
 const produtoRoutes = require("./routes/produtoRoute");
+const encomendaRoutes = require("./routes/encomendaRoute");
 
 app.use("/categorias", categoriaRoutes);
 app.use("/produtos", produtoRoutes);
+app.use("/encomendas", encomendaRoutes);
 
 /* Liga à base de dados e inicia o servidor */
 sequelize

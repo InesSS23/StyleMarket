@@ -19,6 +19,10 @@ function LayoutVendedor() {
             Adicionar Produto
           </Link>
 
+          <Link className="nav-link text-white" to="/vendedor/vendas">
+            Vendas
+          </Link>
+
           <Link className="nav-link text-white" to="/">
             Voltar à Loja
           </Link>

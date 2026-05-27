@@ -32,6 +32,39 @@ controllers.listar = async (req, res) => {
   }
 };
 
+/* Listar produtos do vendedor */
+controllers.listarPorVendedor = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+
+    const data = await Product.findAll({
+      where: { sellerId },
+      include: [
+        {
+          model: Category,
+        },
+        {
+          model: User,
+          as: "seller",
+          attributes: ["id", "name", "email", "storeName"],
+        },
+      ],
+      order: [["id", "ASC"]],
+    });
+
+    res.json({
+      success: true,
+      data: data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Erro ao listar produtos do vendedor.",
+      error: error.message,
+    });
+  }
+};
+
 /* Criar produto */
 controllers.criar = async (req, res) => {
   try {

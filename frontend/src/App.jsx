@@ -17,6 +17,7 @@ import DashboardVendedor from "./pages/vendedor/DashboardVendedor";
 import ProdutosVendedor from "./pages/vendedor/ProdutosVendedor";
 import AdicionarProduto from "./pages/vendedor/AdicionarProduto";
 import EditarProduto from "./pages/vendedor/EditarProduto";
+import VendasVendedor from "./pages/vendedor/VendasVendedor";
 
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import GerirUtilizadores from "./pages/admin/GerirUtilizadores";
@@ -44,9 +45,10 @@ function App() {
           <Route path="produtos" element={<ProdutosVendedor />} />
           <Route path="adicionar-produto" element={<AdicionarProduto />} />
           <Route path="editar-produto/:id" element={<EditarProduto />} />
+          <Route path="vendas" element={<VendasVendedor />} />
         </Route>
 
-        <Route path="/admin" element={<LayoutAdmin />}>
+        <Route path="/admin" element={<LayoutAdmin />} >
           <Route path="dashboard" element={<DashboardAdmin />} />
           <Route path="utilizadores" element={<GerirUtilizadores />} />
           <Route path="produtos" element={<GerirProdutos />} />
