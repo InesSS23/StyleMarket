@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { getSellerId } from "../../services/seller";
@@ -124,7 +124,13 @@ function AdicionarProduto() {
     setErro("");
 
     try {
-      const payload = { ...form, sellerId };
+      const payload = {
+        ...form,
+        sellerId,
+        price: Number(form.price),
+        stock: Number(form.stock),
+        categoryId: Number(form.categoryId),
+      };
       const res = await api.post("/produtos/criar", payload);
       if (res.data && res.data.success) {
         navigate("/vendedor/produtos");
@@ -132,7 +138,12 @@ function AdicionarProduto() {
         setErro(res.data?.message || "Erro ao criar produto.");
       }
     } catch (error) {
-      setErro(error.response?.data?.message || "Erro ao conectar com o servidor.");
+      console.error("Erro ao criar produto:", error);
+      setErro(
+        error.response?.data?.message ||
+          error.message ||
+          "Erro ao conectar com o servidor."
+      );
     } finally {
       setCarregando(false);
     }
@@ -350,7 +361,7 @@ function AdicionarProduto() {
               <div className="col-12">
                 <div className="d-flex gap-2">
                   <button className="btn btn-primary" type="submit" disabled={carregando}>
-                    {carregando ? "A gravar..." : "Guardar Produto"}
+                    {carregando ? "A criar..." : "Guardar Produto"}
                   </button>
                   <button
                     className="btn btn-outline-secondary"

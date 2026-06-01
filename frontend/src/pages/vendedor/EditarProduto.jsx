@@ -62,7 +62,8 @@ function EditarProduto() {
           setErro("Produto não encontrado.");
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Erro ao carregar produto:", error);
         setErro("Erro ao carregar o produto.");
       });
 
@@ -136,8 +137,11 @@ function EditarProduto() {
           setErro(response.data.message || "Erro ao atualizar o produto.");
         }
       })
-      .catch(() => {
-        setErro("Erro ao ligar ao servidor.");
+      .catch((error) => {
+        console.error("Erro ao atualizar produto:", error);
+        setErro(
+          error.response?.data?.message || error.message || "Erro ao ligar ao servidor."
+        );
       })
       .finally(() => setCarregando(false));
   }
@@ -231,6 +235,7 @@ function EditarProduto() {
                   <option value="L">L</option>
                   <option value="XL">XL</option>
                   <option value="XXL">XXL</option>
+                 <option value= "XXXL">XXXL</option>
                 </select>
               </div>
 

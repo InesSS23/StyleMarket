@@ -6,7 +6,6 @@ import { getSellerId } from "../../services/seller";
 function ProdutosVendedor() {
   const [produtos, setProdutos] = useState([]);
   const [pesquisa, setPesquisa] = useState("");
-  const [categorias, setCategorias] = useState([]);
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
   const [tamanhoFiltro, setTamanhoFiltro] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("");
@@ -17,6 +16,7 @@ function ProdutosVendedor() {
 
   function carregarProdutos() {
     setCarregando(true);
+
     api
       .get(`/produtos/listar/vendedor/${sellerId}`)
       .then((response) => {
@@ -35,19 +35,23 @@ function ProdutosVendedor() {
 
   useEffect(() => {
     carregarProdutos();
-    api
-      .get("/categorias/listar")
-      .then((res) => {
-        if (res.data && res.data.success) setCategorias(res.data.data || []);
-      })
-      .catch(() => {});
   }, [sellerId]);
 
-  const produtosFiltrados = produtos.filter((produto) =>
-    produto.name.toLowerCase().includes(pesquisa.toLowerCase()) &&
-    (categoriaFiltro ? String(produto.category?.id || produto.category) === String(categoriaFiltro) : true) &&
-    (tamanhoFiltro ? produto.size === tamanhoFiltro : true) &&
-    (estadoFiltro ? produto.condition === estadoFiltro : true)
+  const produtosFiltrados = produtos.filter(
+    (produto) =>
+      produto.name.toLowerCase().includes(pesquisa.toLowerCase()) &&
+
+      (categoriaFiltro
+        ? produto.category?.name === categoriaFiltro
+        : true) &&
+
+      (tamanhoFiltro
+        ? produto.size === tamanhoFiltro
+        : true) &&
+
+      (estadoFiltro
+        ? produto.condition === estadoFiltro
+        : true)
   );
 
   function apagarProduto(id) {
@@ -74,15 +78,23 @@ function ProdutosVendedor() {
       <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
         <div>
           <h1>Os Meus Produtos</h1>
-          <p className="text-muted">Gere todos os produtos que publicaste na plataforma.</p>
+          <p className="text-muted">
+            Gere todos os produtos que publicaste na plataforma.
+          </p>
         </div>
 
-        <Link className="btn btn-primary align-self-start" to="/vendedor/adicionar-produto">
+        <Link
+          className="btn btn-primary align-self-start"
+          to="/vendedor/adicionar-produto"
+        >
           + Adicionar Produto
         </Link>
       </div>
-
+       
+      {/* FILTROS */}
       <div className="mb-4 row g-2 align-items-center">
+
+        {/* Pesquisa */}
         <div className="col-md-4">
           <input
             type="text"
@@ -91,21 +103,32 @@ function ProdutosVendedor() {
             value={pesquisa}
             onChange={(event) => setPesquisa(event.target.value)}
           />
-        </div>
+        </div> 
 
+        {/* Categoria */}
         <div className="col-md-2">
-          <select className="form-select" value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)}>
+          <select
+            className="form-select"
+            value={categoriaFiltro}
+            onChange={(e) => setCategoriaFiltro(e.target.value)}
+          >
             <option value="">Todas as Categorias</option>
-            {categorias.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
+            <option value="T-Shirts">T-Shirts</option>
+            <option value="Calças">Calças</option>
+            <option value="Casacos">Casacos</option>
+            <option value="Vestidos">Vestidos</option>
+            <option value="Saias">Saias</option>
+            <option value="Acessórios">Acessórios</option>
           </select>
         </div>
 
+        {/* Tamanho */}
         <div className="col-md-2">
-          <select className="form-select" value={tamanhoFiltro} onChange={(e) => setTamanhoFiltro(e.target.value)}>
+          <select
+            className="form-select"
+            value={tamanhoFiltro}
+            onChange={(e) => setTamanhoFiltro(e.target.value)}
+          >
             <option value="">Todos os Tamanhos</option>
             <option value="XS">XS</option>
             <option value="S">S</option>
@@ -113,26 +136,45 @@ function ProdutosVendedor() {
             <option value="L">L</option>
             <option value="XL">XL</option>
             <option value="XXL">XXL</option>
-          </select>
+            <option value= "XXXL">XXXL</option>         </select>
         </div>
 
+        {/* Estado */}
         <div className="col-md-2">
-          <select className="form-select" value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)}>
+          <select
+            className="form-select"
+            value={estadoFiltro}
+            onChange={(e) => setEstadoFiltro(e.target.value)}
+          >
             <option value="">Todos os Estados</option>
             <option value="Novo">Novo</option>
-            <option value="Usado - Como Novo">Usado - Como Novo</option>
-            <option value="Usado - Bom Estado">Usado - Bom Estado</option>
+            <option value="Usado - Como Novo">
+              Usado - Como Novo
+            </option>
+            <option value="Usado - Bom Estado">
+              Usado - Bom Estado
+            </option>
           </select>
         </div>
+
       </div>
 
-      {erro && <div className="alert alert-danger">{erro}</div>}
+      {erro && (
+        <div className="alert alert-danger">
+          {erro}
+        </div>
+      )}
+
       {!erro && !carregando && produtosFiltrados.length === 0 && (
-        <div className="alert alert-info">Ainda não existem produtos para mostrar.</div>
+        <div className="alert alert-info">
+          Ainda não existem produtos para mostrar.
+        </div>
       )}
 
       {carregando ? (
-        <div className="alert alert-secondary">A carregar produtos...</div>
+        <div className="alert alert-secondary">
+          A carregar produtos...
+        </div>
       ) : (
         <div className="table-responsive">
           <table className="table table-hover align-middle">
@@ -146,32 +188,61 @@ function ProdutosVendedor() {
                 <th>Stock</th>
                 <th>Estado</th>
                 <th>Ações</th>
+                <th>Data</th>
               </tr>
             </thead>
+
             <tbody>
               {produtosFiltrados.map((produto) => (
                 <tr key={produto.id}>
                   <td>
                     <img
-                      src={produto.image || "/images/produtos/sem-imagem.jpg"}
+                      src={
+                        produto.image ||
+                        "/images/produtos/sem-imagem.jpg"
+                      }
                       alt={produto.name}
                       className="rounded"
-                      style={{ width: 80, height: 80, objectFit: "cover" }}
+                      style={{
+                        width: 80,
+                        height: 80,
+                        objectFit: "cover",
+                      }}
                     />
                   </td>
+
                   <td>
                     <strong>{produto.name}</strong>
-                    <div className="text-muted">{produto.brand || "Sem marca"}</div>
+
+                    <div className="text-muted">
+                      {produto.brand || "Sem marca"}
+                    </div>
                   </td>
-                  <td>{produto.category ? produto.category.name : "Sem categoria"}</td>
-                  <td>{produto.size}</td>
-                  <td>{Number(produto.price).toFixed(2)} €</td>
-                  <td>{produto.stock}</td>
-                  <td>{produto.condition}</td>
+
                   <td>
-                    <Link className="btn btn-sm btn-outline-primary me-2" to={`/vendedor/editar-produto/${produto.id}`}>
+                    {produto.category
+                      ? produto.category.name
+                      : "Sem categoria"}
+                  </td>
+
+                  <td>{produto.size}</td>
+
+                  <td>
+                    {Number(produto.price).toFixed(2)} €
+                  </td>
+
+                  <td>{produto.stock}</td>
+
+                  <td>{produto.condition}</td>
+
+                  <td>
+                    <Link
+                      className="btn btn-sm btn-outline-primary me-2"
+                      to={`/vendedor/editar-produto/${produto.id}`}
+                    >
                       Editar
                     </Link>
+
                     <button
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => apagarProduto(produto.id)}
@@ -182,6 +253,7 @@ function ProdutosVendedor() {
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
       )}

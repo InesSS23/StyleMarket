@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import { getSellerId } from "../../services/seller";
@@ -147,7 +147,7 @@ function DashboardVendedor() {
                         />
                       </td>
                       <td>{produto.name}</td>
-                      <td>{produto.category}</td>
+                      <td>{produto.category?.name || "Sem categoria"}</td>
                       <td>{produto.size}</td>
                       <td>{Number(produto.price).toFixed(2)} €</td>
                       <td>{produto.stock}</td>

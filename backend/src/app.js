@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
-const { sequelize } = require("./models");
+const { sequelize, User, Category } = require("./models");
 
 const app = express();
 
@@ -34,8 +34,37 @@ app.use("/encomendas", encomendaRoutes);
 /* Liga à base de dados e inicia o servidor */
 sequelize
   .sync()
-  .then(() => {
+  .then(async () => {
     console.log("Base de dados sincronizada com sucesso.");
+
+    const defaultCategories = [
+      "T-shirts",
+      "Casacos",
+      "Calças",
+      "Vestidos",
+      "Sapatilhas",
+      "Acessórios",
+    ];
+
+    for (const categoryName of defaultCategories) {
+      await Category.findOrCreate({
+        where: { name: categoryName },
+        defaults: { name: categoryName },
+      });
+    }
+
+    await User.findOrCreate({
+      where: { email: "vendedor@stylemarket.com" },
+      defaults: {
+        name: "Vendedor Padrão",
+        email: "vendedor@stylemarket.com",
+        password: "1234",
+        role: "vendedor",
+        storeName: "Loja Padrão",
+      },
+    });
+
+    console.log("Dados iniciais verificados/criados.");
 
     app.listen(app.get("port"), () => {
       console.log("Servidor iniciado na porta " + app.get("port"));
