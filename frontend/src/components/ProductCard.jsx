@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
+import { adicionarAoCarrinho } from "../utils/carrinhoUtils";
 
 function ProductCard({ produto }) {
+  function handleAdicionarCarrinho() {
+    adicionarAoCarrinho(produto);
+    alert("Produto adicionado ao carrinho.");
+  }
+
   return (
     <div className="card h-100 shadow-sm product-card">
       <img
@@ -28,7 +34,9 @@ function ProductCard({ produto }) {
             Ver detalhes
           </Link>
 
-          <button className="btn btn-primary">Adicionar ao carrinho</button>
+          <button className="btn btn-primary" onClick={handleAdicionarCarrinho}>
+            Adicionar ao carrinho
+          </button>
         </div>
       </div>
     </div>

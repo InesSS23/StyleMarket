@@ -52,3 +52,11 @@ a {
   object-fit: cover;
   background-color: #e9ecef;
 }
+
+.cart-product-image {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 12px;
+  background-color: #e9ecef;
+}
