@@ -22,6 +22,8 @@ function AdicionarProduto() {
     size: "",
     color: "",
     brand: "",
+
+    
     stock: 0,
     condition: "",
     image: "",

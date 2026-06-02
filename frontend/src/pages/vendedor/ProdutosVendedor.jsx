@@ -250,6 +250,7 @@ function ProdutosVendedor() {
                       Apagar
                     </button>
                   </td>
+                  <td>{produto.date}</td>
                 </tr>
               ))}
             </tbody>
