@@ -8,20 +8,20 @@ function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Aqui vais ligar ao teu backend futuramente:
+    
     console.log("Dados do Login:", { email, password, rememberMe });
   };
 
-  // Função utilitária para preencher rapidamente as contas de demonstração ao clicar
+  
   const handleQuickLogin = (demoEmail) => {
     setEmail(demoEmail);
-    setPassword("1234"); // ou a password padrão que definires
+    setPassword("1234"); 
   };
 
   return (
     <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 py-4 bg-light">
       
-      {/* Header Logo */}
+     
       <div className="text-center mb-4">
         <div className="d-flex align-items-center justify-content-center gap-2 mb-1 text-primary fw-bold fs-3">
           <i className="bi bi-cart-fill bg-primary text-white p-2 rounded-3 fs-4 d-inline-flex"></i>

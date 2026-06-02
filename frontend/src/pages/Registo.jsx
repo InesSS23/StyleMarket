@@ -9,7 +9,7 @@ function Registo() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Aqui vais ligar ao teu backend futuramente:
+    
     console.log("Dados do Registo:", { nome, email, password, accountType });
   };
 
@@ -86,7 +86,7 @@ function Registo() {
             <label className="form-label text-secondary small fw-semibold">Tipo de Conta</label>
             <div className="row g-2">
               
-              {/* Opção Comprador */}
+              
               <div className="col-6">
                 <button
                   type="button"
@@ -107,7 +107,7 @@ function Registo() {
                 </button>
               </div>
 
-              {/* Opção Vendedor */}
+           
               <div className="col-6">
                 <button
                   type="button"
