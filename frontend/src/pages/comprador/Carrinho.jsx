@@ -25,82 +25,84 @@ function Carrinho() {
     guardarCarrinho(carrinhoAtualizado);
   }
 
-  const total = itens.reduce(
+  const subtotal = itens.reduce(
     (soma, item) => soma + Number(item.price) * item.quantidade,
     0
   );
 
+  const envio = subtotal >= 50 ? 0 : 5.99;
+  const total = subtotal + envio;
+
   if (itens.length === 0) {
     return (
-      <div className="container py-5">
-        <h1>Carrinho</h1>
+      <div className="bg-light min-vh-100 d-flex align-items-center">
+        <div className="container py-5 text-center">
+          <h1 className="fw-bold mb-2">O teu carrinho está vazio</h1>
 
-        <div className="alert alert-info mt-4">
-          O teu carrinho ainda está vazio.
+          <p className="text-muted mb-4">
+            Adiciona produtos ao carrinho para começares a tua compra.
+          </p>
+
+          <Link to="/catalogo" className="btn btn-primary px-5">
+            Ver catálogo
+          </Link>
         </div>
-
-        <Link to="/catalogo" className="btn btn-primary">
-          Ver catálogo
-        </Link>
       </div>
     );
   }
 
   return (
-    <div className="container py-5">
-      <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
-        <div>
-          <h1>Carrinho</h1>
-          <p className="text-muted">Confirma os produtos antes de finalizar.</p>
+    <div className="bg-light min-vh-100 py-5">
+      <div className="container">
+        <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+          <div>
+            <h1 className="fw-bold mb-1">Carrinho de Compras</h1>
+            <p className="text-muted mb-0">
+              Revê os produtos antes de finalizar a encomenda.
+            </p>
+          </div>
         </div>
 
-        <Link to="/catalogo" className="btn btn-outline-dark align-self-start">
-          Continuar a comprar
-        </Link>
-      </div>
+        <div className="row g-4">
+          <div className="col-lg-8">
+            {itens.map((item) => (
+              <div className="card border-0 shadow-sm mb-3 cart-item-card" key={item.id}>
+                <div className="card-body p-4">
+                  <div className="d-flex gap-3">
+                    <img
+                      src={item.image || "/images/produtos/sem-imagem.jpg"}
+                      alt={item.name}
+                      className="cart-product-image"
+                    />
 
-      <div className="row g-4">
-        <div className="col-lg-8">
-          <div className="card shadow-sm border-0">
-            <div className="table-responsive">
-              <table className="table align-middle mb-0">
-                <thead className="table-light">
-                  <tr>
-                    <th>Produto</th>
-                    <th>Preço</th>
-                    <th>Quantidade</th>
-                    <th>Subtotal</th>
-                    <th></th>
-                  </tr>
-                </thead>
+                    <div className="flex-grow-1">
+                      <div className="d-flex justify-content-between gap-3">
+                        <div>
+                          <h5 className="fw-bold mb-1">{item.name}</h5>
 
-                <tbody>
-                  {itens.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        <div className="d-flex align-items-center gap-3">
-                          <img
-                            src={item.image || "/images/produtos/sem-imagem.jpg"}
-                            alt={item.name}
-                            className="cart-product-image"
-                          />
+                          <div className="d-flex gap-2 mb-3">
+                            <span className="badge bg-light text-dark border">
+                              Tam. {item.size}
+                            </span>
 
-                          <div>
-                            <strong>{item.name}</strong>
-                            <br />
-                            <small className="text-muted">
-                              {item.size} · {item.color}
-                            </small>
+                            <span className="badge bg-light text-dark border">
+                              {item.color}
+                            </span>
                           </div>
                         </div>
-                      </td>
 
-                      <td>{Number(item.price).toFixed(2)} €</td>
+                        <button
+                          className="btn btn-sm btn-outline-danger align-self-start"
+                          onClick={() => removerProduto(item.id)}
+                        >
+                          Remover
+                        </button>
+                      </div>
 
-                      <td>
+                      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                         <div className="d-flex align-items-center gap-2">
                           <button
-                            className="btn btn-sm btn-outline-secondary"
+                            className="btn btn-outline-secondary btn-sm quantity-button"
                             onClick={() =>
                               atualizarQuantidade(item.id, item.quantidade - 1)
                             }
@@ -108,10 +110,12 @@ function Carrinho() {
                             -
                           </button>
 
-                          <span>{item.quantidade}</span>
+                          <span className="fw-bold quantity-number">
+                            {item.quantidade}
+                          </span>
 
                           <button
-                            className="btn btn-sm btn-outline-secondary"
+                            className="btn btn-outline-secondary btn-sm quantity-button"
                             onClick={() =>
                               atualizarQuantidade(item.id, item.quantidade + 1)
                             }
@@ -119,53 +123,62 @@ function Carrinho() {
                             +
                           </button>
                         </div>
-                      </td>
 
-                      <td>
-                        {(Number(item.price) * item.quantidade).toFixed(2)} €
-                      </td>
+                        <div className="text-md-end">
+                          <small className="text-muted d-block">
+                            {Number(item.price).toFixed(2)} € cada
+                          </small>
 
-                      <td className="text-end">
-                        <button
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => removerProduto(item.id)}
-                        >
-                          Remover
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          <strong className="fs-5">
+                            {(Number(item.price) * item.quantidade).toFixed(2)} €
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
 
-        <div className="col-lg-4">
-          <div className="card shadow-sm border-0">
-            <div className="card-body">
-              <h5 className="fw-bold mb-3">Resumo</h5>
+          <div className="col-lg-4">
+            <div className="card border-0 shadow-sm order-summary-card">
+              <div className="card-body p-4">
+                <h5 className="fw-bold mb-4">Resumo da Encomenda</h5>
 
-              <div className="d-flex justify-content-between mb-2">
-                <span>Subtotal</span>
-                <span>{total.toFixed(2)} €</span>
+                <div className="d-flex justify-content-between text-muted mb-2">
+                  <span>
+                    Subtotal ({itens.length} {itens.length === 1 ? "item" : "itens"})
+                  </span>
+                  <span>{subtotal.toFixed(2)} €</span>
+                </div>
+
+                <div className="d-flex justify-content-between text-muted mb-2">
+                  <span>Envio</span>
+                  <span>{envio === 0 ? "Grátis" : `${envio.toFixed(2)} €`}</span>
+                </div>
+
+                {subtotal < 50 && (
+                  <small className="text-muted d-block mb-3">
+                    Envio grátis em compras a partir de 50 €.
+                  </small>
+                )}
+
+                <hr />
+
+                <div className="d-flex justify-content-between fw-bold fs-5 mb-4">
+                  <span>Total</span>
+                  <span>{total.toFixed(2)} €</span>
+                </div>
+
+                <Link to="/finalizar-compra" className="btn btn-primary w-100 mb-2">
+                  Finalizar compra
+                </Link>
+
+                <Link to="/catalogo" className="btn btn-outline-secondary w-100">
+                  Continuar a comprar
+                </Link>
               </div>
-
-              <div className="d-flex justify-content-between mb-3">
-                <span>Envio</span>
-                <span>Grátis</span>
-              </div>
-
-              <hr />
-
-              <div className="d-flex justify-content-between mb-4">
-                <strong>Total</strong>
-                <strong>{total.toFixed(2)} €</strong>
-              </div>
-
-              <Link to="/finalizar-compra" className="btn btn-primary w-100">
-                Finalizar compra
-              </Link>
             </div>
           </div>
         </div>

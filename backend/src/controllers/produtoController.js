@@ -1,4 +1,4 @@
-const { Product, Category, User } = require("../models");
+const { Product, ProductVariant, Category, User } = require("../models");
 
 const controllers = {};
 
@@ -80,9 +80,10 @@ controllers.criar = async (req, res) => {
       image,
       categoryId,
       sellerId,
+      variants,
     } = req.body;
 
-    if (!name || !description || !price || !size || !color) {
+    if (!name || !description || !price) {
       return res.status(400).json({
         success: false,
         message: "Preenche os campos obrigatórios do produto.",
@@ -93,20 +94,44 @@ controllers.criar = async (req, res) => {
       name,
       description,
       price,
-      size,
-      color,
+      size: size || "Único",
+      color: color || "Única",
       brand,
-      stock,
+      stock: stock || 0,
       condition,
       image,
       categoryId,
       sellerId,
     });
 
+    if (variants && variants.length > 0) {
+      for (const variant of variants) {
+        if (variant.size && variant.color) {
+          await ProductVariant.create({
+            productId: data.id,
+            size: variant.size,
+            color: variant.color,
+            stock: variant.stock || 0,
+          });
+        }
+      }
+    } else {
+      await ProductVariant.create({
+        productId: data.id,
+        size: size || "Único",
+        color: color || "Única",
+        stock: stock || 0,
+      });
+    }
+
+    const produtoCriado = await Product.findByPk(data.id, {
+      include: [Category, ProductVariant],
+    });
+
     res.status(201).json({
       success: true,
       message: "Produto criado com sucesso.",
-      data: data,
+      data: produtoCriado,
     });
   } catch (error) {
     res.status(500).json({
@@ -126,6 +151,9 @@ controllers.obter = async (req, res) => {
       include: [
         {
           model: Category,
+        },
+        {
+          model: ProductVariant,
         },
         {
           model: User,
@@ -214,4 +242,39 @@ controllers.apagar = async (req, res) => {
   }
 };
 
+//ROTA TEMPORARIA VARIANTES
+controllers.criarVariantesAntigas = async (req, res) => {
+  try {
+    const produtos = await Product.findAll({
+      include: [ProductVariant],
+    });
+
+    let totalCriadas = 0;
+
+    for (const produto of produtos) {
+      if (!produto.productVariants || produto.productVariants.length === 0) {
+        await ProductVariant.create({
+          productId: produto.id,
+          size: produto.size || "Único",
+          color: produto.color || "Única",
+          stock: produto.stock || 0,
+        });
+
+        totalCriadas++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: "Variações antigas verificadas.",
+      totalCriadas,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Erro ao criar variações antigas.",
+      error: error.message,
+    });
+  }
+};
 module.exports = controllers;

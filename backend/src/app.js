@@ -33,7 +33,7 @@ app.use("/encomendas", encomendaRoutes);
 
 /* Liga à base de dados e inicia o servidor */
 sequelize
-  .sync()
+  .sync({ alter: true })
   .then(async () => {
     console.log("Base de dados sincronizada com sucesso.");
 

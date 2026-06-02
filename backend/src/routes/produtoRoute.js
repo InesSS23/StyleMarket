@@ -11,4 +11,7 @@ router.post("/criar", produtoController.criar);
 router.put("/atualizar/:id", produtoController.atualizar);
 router.delete("/apagar/:id", produtoController.apagar);
 
+//temporariamente para testes
+router.post("/criar-variantes-antigas", produtoController.criarVariantesAntigas);
+
 module.exports = router;

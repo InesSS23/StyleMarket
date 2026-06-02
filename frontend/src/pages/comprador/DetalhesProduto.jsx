@@ -1,19 +1,38 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../../services/api";
+import { adicionarAoCarrinho } from "../../utils/carrinhoUtils";
 
 function DetalhesProduto() {
   const { id } = useParams();
 
   const [produto, setProduto] = useState(null);
   const [erro, setErro] = useState("");
+  const [corSelecionada, setCorSelecionada] = useState("");
+  const [tamanhoSelecionado, setTamanhoSelecionado] = useState("");
 
   useEffect(() => {
     api
       .get(`/produtos/obter/${id}`)
       .then((response) => {
         if (response.data.success) {
-          setProduto(response.data.data);
+          const produtoRecebido = response.data.data;
+
+          setProduto(produtoRecebido);
+
+          if (
+            produtoRecebido.productVariants &&
+            produtoRecebido.productVariants.length > 0
+          ) {
+            const primeiraComStock = produtoRecebido.productVariants.find(
+              (variant) => variant.stock > 0
+            );
+
+            if (primeiraComStock) {
+              setCorSelecionada(primeiraComStock.color);
+              setTamanhoSelecionado(primeiraComStock.size);
+            }
+          }
         } else {
           setErro("Produto não encontrado.");
         }
@@ -41,6 +60,38 @@ function DetalhesProduto() {
         <div className="alert alert-info">A carregar produto...</div>
       </div>
     );
+  }
+
+  const variantes = produto.productVariants || [];
+
+  const coresDisponiveis = [
+    ...new Set(variantes.map((variant) => variant.color)),
+  ];
+
+  const tamanhosDaCor = variantes.filter(
+    (variant) => variant.color === corSelecionada
+  );
+
+  const varianteSelecionada = variantes.find(
+    (variant) =>
+      variant.color === corSelecionada && variant.size === tamanhoSelecionado
+  );
+
+  const temStock = varianteSelecionada && varianteSelecionada.stock > 0;
+
+  function handleAdicionarCarrinho() {
+    if (variantes.length > 0 && !varianteSelecionada) {
+      alert("Seleciona uma cor e um tamanho.");
+      return;
+    }
+
+    if (variantes.length > 0 && !temStock) {
+      alert("Esta opção está esgotada.");
+      return;
+    }
+
+    adicionarAoCarrinho(produto, varianteSelecionada);
+    alert("Produto adicionado ao carrinho.");
   }
 
   return (
@@ -71,25 +122,75 @@ function DetalhesProduto() {
             {Number(produto.price).toFixed(2)} €
           </h2>
 
+          {variantes.length > 0 && (
+            <div className="mb-4">
+              <h5 className="fw-bold mb-3">Escolhe a cor</h5>
+
+              <div className="d-flex flex-wrap gap-2 mb-4">
+                {coresDisponiveis.map((cor) => (
+                  <button
+                    type="button"
+                    className={
+                      corSelecionada === cor
+                        ? "btn btn-primary"
+                        : "btn btn-outline-primary"
+                    }
+                    key={cor}
+                    onClick={() => {
+                      setCorSelecionada(cor);
+
+                      const primeiraDaCor = variantes.find(
+                        (variant) => variant.color === cor && variant.stock > 0
+                      );
+
+                      if (primeiraDaCor) {
+                        setTamanhoSelecionado(primeiraDaCor.size);
+                      } else {
+                        setTamanhoSelecionado("");
+                      }
+                    }}
+                  >
+                    {cor}
+                  </button>
+                ))}
+              </div>
+
+              <h5 className="fw-bold mb-3">Escolhe o tamanho</h5>
+
+              <div className="d-flex flex-wrap gap-2">
+                {tamanhosDaCor.map((variant) => (
+                  <button
+                    type="button"
+                    className={
+                      tamanhoSelecionado === variant.size
+                        ? "btn btn-dark"
+                        : "btn btn-outline-dark"
+                    }
+                    key={variant.id}
+                    disabled={variant.stock <= 0}
+                    onClick={() => setTamanhoSelecionado(variant.size)}
+                  >
+                    {variant.size}
+                    {variant.stock <= 0 && " - Esgotado"}
+                  </button>
+                ))}
+              </div>
+
+              {varianteSelecionada && (
+                <p className="text-muted mt-3 mb-0">
+                  Stock disponível: {varianteSelecionada.stock}
+                </p>
+              )}
+            </div>
+          )}
+
           <ul className="list-group mb-4">
-            <li className="list-group-item">
-              <strong>Tamanho:</strong> {produto.size}
-            </li>
-
-            <li className="list-group-item">
-              <strong>Cor:</strong> {produto.color}
-            </li>
-
             <li className="list-group-item">
               <strong>Marca:</strong> {produto.brand || "Sem marca"}
             </li>
 
             <li className="list-group-item">
               <strong>Estado:</strong> {produto.condition}
-            </li>
-
-            <li className="list-group-item">
-              <strong>Stock:</strong> {produto.stock}
             </li>
 
             <li className="list-group-item">
@@ -100,8 +201,14 @@ function DetalhesProduto() {
             </li>
           </ul>
 
-          <button className="btn btn-primary btn-lg w-100">
-            Adicionar ao carrinho
+          <button
+            className="btn btn-primary btn-lg w-100"
+            onClick={handleAdicionarCarrinho}
+            disabled={variantes.length > 0 && !temStock}
+          >
+            {temStock || variantes.length === 0
+              ? "Adicionar ao carrinho"
+              : "Produto esgotado"}
           </button>
         </div>
       </div>
