@@ -112,6 +112,7 @@ function FinalizarCompra() {
 
     const items = itens.map((item) => ({
       productId: item.id,
+      productVariantId: item.variantId,
       quantity: item.quantidade,
     }));
 

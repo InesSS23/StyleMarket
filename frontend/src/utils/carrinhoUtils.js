@@ -12,14 +12,20 @@ export function guardarCarrinho(carrinho) {
   localStorage.setItem("carrinho", JSON.stringify(carrinho));
 }
 
-export function adicionarAoCarrinho(produto) {
+export function adicionarAoCarrinho(produto, variante = null) {
   const carrinho = obterCarrinho();
 
-  const produtoExistente = carrinho.find((item) => item.id === produto.id);
+  const variantId = variante ? variante.id : null;
+  const size = variante ? variante.size : produto.size;
+  const color = variante ? variante.color : produto.color;
+
+  const produtoExistente = carrinho.find(
+    (item) => item.id === produto.id && item.variantId === variantId
+  );
 
   if (produtoExistente) {
     const carrinhoAtualizado = carrinho.map((item) =>
-      item.id === produto.id
+      item.id === produto.id && item.variantId === variantId
         ? { ...item, quantidade: item.quantidade + 1 }
         : item
     );
@@ -30,11 +36,12 @@ export function adicionarAoCarrinho(produto) {
 
   const novoProduto = {
     id: produto.id,
+    variantId: variantId,
     name: produto.name,
     price: produto.price,
     image: produto.image,
-    size: produto.size,
-    color: produto.color,
+    size: size,
+    color: color,
     quantidade: 1,
   };
 

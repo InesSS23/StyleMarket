@@ -1,4 +1,11 @@
-const { Order, OrderItem, Product, User, Category } = require("../models");
+const {
+  Order,
+  OrderItem,
+  Product,
+  ProductVariant,
+  User,
+  Category,
+} = require("../models");
 
 const controllers = {};
 
@@ -95,10 +102,31 @@ controllers.criar = async (req, res) => {
         });
       }
 
+      let variant = null;
+
+      if (item.productVariantId) {
+        variant = await ProductVariant.findByPk(item.productVariantId);
+
+        if (!variant || variant.productId !== product.id) {
+          return res.status(404).json({
+            success: false,
+            message: "Variação do produto não encontrada.",
+          });
+        }
+
+        if (variant.stock < quantity) {
+          return res.status(400).json({
+            success: false,
+            message: `Stock insuficiente para ${product.name} (${variant.color}, ${variant.size}).`,
+          });
+        }
+      }
+
       subtotal += Number(product.price) * quantity;
 
       itensValidos.push({
         product,
+        variant,
         quantity,
         price: Number(product.price),
       });
@@ -126,9 +154,16 @@ controllers.criar = async (req, res) => {
       await OrderItem.create({
         orderId: order.id,
         productId: item.product.id,
+        productVariantId: item.variant ? item.variant.id : null,
         quantity: item.quantity,
         price: item.price,
       });
+
+      if (item.variant) {
+        await item.variant.update({
+          stock: item.variant.stock - item.quantity,
+        });
+      }
     }
 
     const encomendaCriada = await Order.findByPk(order.id, {
@@ -139,6 +174,9 @@ controllers.criar = async (req, res) => {
             {
               model: Product,
               include: [Category],
+            },
+            {
+              model: ProductVariant,
             },
           ],
         },
