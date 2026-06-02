@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../../services/api";
+import { adicionarAoCarrinho } from "../../utils/carrinhoUtils";
 
 function DetalhesProduto() {
   const { id } = useParams();
@@ -22,6 +23,11 @@ function DetalhesProduto() {
         setErro("Erro ao carregar o produto.");
       });
   }, [id]);
+
+  function handleAdicionarCarrinho() {
+    adicionarAoCarrinho(produto);
+    alert("Produto adicionado ao carrinho.");
+  }
 
   if (erro) {
     return (
@@ -100,7 +106,10 @@ function DetalhesProduto() {
             </li>
           </ul>
 
-          <button className="btn btn-primary btn-lg w-100">
+          <button
+            className="btn btn-primary btn-lg w-100"
+            onClick={handleAdicionarCarrinho}
+          >
             Adicionar ao carrinho
           </button>
         </div>
