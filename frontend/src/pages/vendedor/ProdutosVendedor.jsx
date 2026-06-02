@@ -14,6 +14,17 @@ function ProdutosVendedor() {
 
   const sellerId = getSellerId();
 
+  // 💡 Função auxiliar para formatar a data que vem do Sequelize (createdAt)
+  const formatarData = (dataString) => {
+    if (!dataString) return "---";
+    const data = new Date(dataString);
+    return data.toLocaleDateString("pt-PT", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   function carregarProdutos() {
     setCarregando(true);
 
@@ -93,7 +104,6 @@ function ProdutosVendedor() {
        
       {/* FILTROS */}
       <div className="mb-4 row g-2 align-items-center">
-
         {/* Pesquisa */}
         <div className="col-md-4">
           <input
@@ -136,7 +146,8 @@ function ProdutosVendedor() {
             <option value="L">L</option>
             <option value="XL">XL</option>
             <option value="XXL">XXL</option>
-            <option value= "XXXL">XXXL</option>         </select>
+            <option value="XXXL">XXXL</option>
+          </select>
         </div>
 
         {/* Estado */}
@@ -148,15 +159,10 @@ function ProdutosVendedor() {
           >
             <option value="">Todos os Estados</option>
             <option value="Novo">Novo</option>
-            <option value="Usado - Como Novo">
-              Usado - Como Novo
-            </option>
-            <option value="Usado - Bom Estado">
-              Usado - Bom Estado
-            </option>
+            <option value="Usado - Como Novo">Usado - Como Novo</option>
+            <option value="Usado - Bom Estado">Usado - Bom Estado</option>
           </select>
         </div>
-
       </div>
 
       {erro && (
@@ -187,8 +193,8 @@ function ProdutosVendedor() {
                 <th>Preço</th>
                 <th>Stock</th>
                 <th>Estado</th>
+                <th>Data de Inserção</th> {/* Mudado para antes de Ações */}
                 <th>Ações</th>
-                <th>Data</th>
               </tr>
             </thead>
 
@@ -197,10 +203,7 @@ function ProdutosVendedor() {
                 <tr key={produto.id}>
                   <td>
                     <img
-                      src={
-                        produto.image ||
-                        "/images/produtos/sem-imagem.jpg"
-                      }
+                      src={produto.image || "/images/produtos/sem-imagem.jpg"}
                       alt={produto.name}
                       className="rounded"
                       style={{
@@ -213,16 +216,13 @@ function ProdutosVendedor() {
 
                   <td>
                     <strong>{produto.name}</strong>
-
                     <div className="text-muted">
                       {produto.brand || "Sem marca"}
                     </div>
                   </td>
 
                   <td>
-                    {produto.category
-                      ? produto.category.name
-                      : "Sem categoria"}
+                    {produto.category ? produto.category.name : "Sem categoria"}
                   </td>
 
                   <td>{produto.size}</td>
@@ -234,6 +234,11 @@ function ProdutosVendedor() {
                   <td>{produto.stock}</td>
 
                   <td>{produto.condition}</td>
+
+                  {/* 💡 Exibe a data formatada corretamente usando o createdAt do Sequelize */}
+                  <td className="text-muted small">
+                    {formatarData(produto.createdAt)}
+                  </td>
 
                   <td>
                     <Link
@@ -253,7 +258,6 @@ function ProdutosVendedor() {
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
       )}

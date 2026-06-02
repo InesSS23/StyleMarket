@@ -44,8 +44,9 @@ const Product = sequelize.define("product", {
     defaultValue: "Novo",
   },
 
+ 
   image: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT, 
     allowNull: true,
   },
 });
