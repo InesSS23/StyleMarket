@@ -97,10 +97,17 @@ controllers.login = async (req, res) => {
       where: { email: email },
     });
 
-    if (!user || user.password !== password) {
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Não existe nenhuma conta com este email.",
+      });
+    }
+
+    if (user.password !== password) {
       return res.status(401).json({
         success: false,
-        message: "Email ou password incorretos.",
+        message: "Password incorreta.",
       });
     }
 

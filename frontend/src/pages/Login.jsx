@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { guardarUtilizador } from "../utils/authUtils";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,28 +13,37 @@ function Login() {
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function guardarUtilizador(user) {
-    const dados = JSON.stringify(user);
-
-    if (rememberMe) {
-      localStorage.setItem("utilizador", dados);
-    } else {
-      sessionStorage.setItem("utilizador", dados);
+  function caminhoPermitido(caminho, role) {
+    if (caminho.startsWith("/admin") && role !== "admin") {
+      return false;
     }
+
+    if (caminho.startsWith("/vendedor") && role !== "vendedor") {
+      return false;
+    }
+
+    return true;
   }
 
-  function redirecionarPorPerfil(role) {
-    if (role === "admin") {
-      navigate("/admin/dashboard");
+  function redirecionarPorPerfil(user) {
+    const caminhoAnterior = location.state?.from?.pathname;
+
+    if (caminhoAnterior && caminhoPermitido(caminhoAnterior, user.role)) {
+      navigate(caminhoAnterior, { replace: true });
       return;
     }
 
-    if (role === "vendedor") {
-      navigate("/vendedor/dashboard");
+    if (user.role === "admin") {
+      navigate("/admin/dashboard", { replace: true });
       return;
     }
 
-    navigate("/");
+    if (user.role === "vendedor") {
+      navigate("/vendedor/dashboard", { replace: true });
+      return;
+    }
+
+    navigate("/", { replace: true });
   }
 
   function handleSubmit(event) {
@@ -49,8 +60,8 @@ function Login() {
         if (response.data.success) {
           const user = response.data.data;
 
-          guardarUtilizador(user);
-          redirecionarPorPerfil(user.role);
+          guardarUtilizador(user, rememberMe);
+          redirecionarPorPerfil(user);
         } else {
           setErro("Não foi possível iniciar sessão.");
         }
@@ -70,9 +81,7 @@ function Login() {
   return (
     <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 py-4 bg-light">
       <div className="text-center mb-4">
-        <div className="d-flex align-items-center justify-content-center gap-2 mb-1 text-primary fw-bold fs-3">
-          <span>StyleMarket</span>
-        </div>
+        <div className="text-primary fw-bold fs-3">StyleMarket</div>
         <small className="text-muted">Bem-vindo de volta!</small>
       </div>
 
@@ -86,10 +95,15 @@ function Login() {
           Entrada única para comprador, vendedor e administrador.
         </p>
 
-        {erro && (
-          <div className="alert alert-danger p-2 small text-center">
-            {erro}
+        {location.state?.from?.pathname === "/finalizar-compra" && (
+          <div className="alert alert-info small">
+            Para finalizar a compra, inicia sessão primeiro. O teu carrinho será
+            mantido.
           </div>
+        )}
+
+        {erro && (
+          <div className="alert alert-danger p-2 small text-center">{erro}</div>
         )}
 
         <form onSubmit={handleSubmit}>
@@ -125,23 +139,18 @@ function Login() {
             />
           </div>
 
-          <div className="d-flex justify-content-between align-items-center mb-4 small">
-            <div className="form-check">
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={(event) => setRememberMe(event.target.checked)}
-              />
+          <div className="form-check mb-4 small">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+            />
 
-              <label
-                className="form-check-label text-secondary"
-                htmlFor="rememberMe"
-              >
-                Lembrar-me
-              </label>
-            </div>
+            <label className="form-check-label text-secondary" htmlFor="rememberMe">
+              Lembrar-me
+            </label>
           </div>
 
           <button

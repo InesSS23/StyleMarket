@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
+import RotaProtegida from "./components/RotaProtegida";
+
 import LayoutPrincipal from "./layouts/LayoutPrincipal";
 import LayoutVendedor from "./layouts/LayoutVendedor";
 import LayoutAdmin from "./layouts/LayoutAdmin";
@@ -34,13 +36,28 @@ function App() {
           <Route path="catalogo" element={<Catalogo />} />
           <Route path="produto/:id" element={<DetalhesProduto />} />
           <Route path="carrinho" element={<Carrinho />} />
-          <Route path="finalizar-compra" element={<FinalizarCompra />} />
+
+          <Route
+            path="finalizar-compra"
+            element={
+              <RotaProtegida perfisPermitidos={["comprador", "vendedor", "admin"]}>
+                <FinalizarCompra />
+              </RotaProtegida>
+            }
+          />
         </Route>
 
         <Route path="/login" element={<Login />} />
         <Route path="/registo" element={<Registo />} />
 
-        <Route path="/vendedor" element={<LayoutVendedor />}>
+        <Route
+          path="/vendedor"
+          element={
+            <RotaProtegida perfisPermitidos={["vendedor"]}>
+              <LayoutVendedor />
+            </RotaProtegida>
+          }
+        >
           <Route path="dashboard" element={<DashboardVendedor />} />
           <Route path="produtos" element={<ProdutosVendedor />} />
           <Route path="adicionar-produto" element={<AdicionarProduto />} />
@@ -48,7 +65,14 @@ function App() {
           <Route path="vendas" element={<VendasVendedor />} />
         </Route>
 
-        <Route path="/admin" element={<LayoutAdmin />} >
+        <Route
+          path="/admin"
+          element={
+            <RotaProtegida perfisPermitidos={["admin"]}>
+              <LayoutAdmin />
+            </RotaProtegida>
+          }
+        >
           <Route path="dashboard" element={<DashboardAdmin />} />
           <Route path="utilizadores" element={<GerirUtilizadores />} />
           <Route path="produtos" element={<GerirProdutos />} />
