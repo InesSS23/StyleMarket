@@ -26,10 +26,12 @@ app.get("/", (req, res) => {
 const categoriaRoutes = require("./routes/categoriaRoute");
 const produtoRoutes = require("./routes/produtoRoute");
 const encomendaRoutes = require("./routes/encomendaRoute");
+const authRoutes = require("./routes/authRoute");
 
 app.use("/categorias", categoriaRoutes);
 app.use("/produtos", produtoRoutes);
 app.use("/encomendas", encomendaRoutes);
+app.use("/auth", authRoutes);
 
 /* Liga à base de dados e inicia o servidor */
 sequelize
@@ -53,6 +55,7 @@ sequelize
       });
     }
 
+    //CONTAS PADRÃO PARA TESTES COMPRADOR, VENDEDOR E ADMIN (REMOVER DEPOIS)
     await User.findOrCreate({
       where: { email: "vendedor@stylemarket.com" },
       defaults: {
@@ -61,6 +64,26 @@ sequelize
         password: "1234",
         role: "vendedor",
         storeName: "Loja Padrão",
+      },
+    });
+
+    await User.findOrCreate({
+      where: { email: "comprador@stylemarket.com" },
+      defaults: {
+        name: "Comprador Padrão",
+        email: "comprador@stylemarket.com",
+        password: "1234",
+        role: "comprador",
+      },
+    });
+
+    await User.findOrCreate({
+      where: { email: "admin@stylemarket.com" },
+      defaults: {
+        name: "Administrador",
+        email: "admin@stylemarket.com",
+        password: "1234",
+        role: "admin",
       },
     });
 
