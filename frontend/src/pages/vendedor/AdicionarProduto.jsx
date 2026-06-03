@@ -22,8 +22,6 @@ function AdicionarProduto() {
     size: "",
     color: "",
     brand: "",
-
-    
     stock: 0,
     condition: "",
     image: "",
@@ -34,9 +32,7 @@ function AdicionarProduto() {
     api
       .get("/categorias/listar")
       .then((res) => {
-        // Tenta vários formatos de resposta
         let cats = null;
-        
         if (res.data && res.data.success && res.data.data && Array.isArray(res.data.data)) {
           cats = res.data.data;
         } else if (res.data && res.data.data && Array.isArray(res.data.data)) {
@@ -49,7 +45,6 @@ function AdicionarProduto() {
           setCategorias(cats);
         } else {
           console.warn("Formato de resposta de categorias não reconhecido:", res.data);
-          // Fallback com categorias padrão
           setCategorias([
             { id: 1, name: "T-shirts" },
             { id: 2, name: "Casacos" },
@@ -62,7 +57,6 @@ function AdicionarProduto() {
       })
       .catch((err) => {
         console.error("Erro ao carregar categorias:", err);
-        // Fallback com categorias padrão em caso de erro
         setCategorias([
           { id: 1, name: "T-shirts" },
           { id: 2, name: "Casacos" },
@@ -73,7 +67,6 @@ function AdicionarProduto() {
         ]);
       });
     
-    // fetch products to derive unique brands
     api
       .get("/produtos/listar")
       .then((res) => {
@@ -93,6 +86,7 @@ function AdicionarProduto() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  // Captura a imagem em Base64
   function handleFile(file) {
     if (!file) return;
     const reader = new FileReader();
@@ -126,13 +120,27 @@ function AdicionarProduto() {
     setErro("");
 
     try {
+      // Obtém a data atual formatada como AAAA-MM-DD
+      const dataAtual = new Date().toISOString().split("T")[0];
+
       const payload = {
         ...form,
         sellerId,
         price: Number(form.price),
         stock: Number(form.stock),
         categoryId: Number(form.categoryId),
+        date: dataAtual, // <-- DATA ADICIONADA AUTOMATICAMENTE AQUI
+        
+        // Enviamos também estruturado como variante para não quebrar o novo backend
+        variants: [
+          {
+            size: form.size,
+            color: form.color,
+            stock: Number(form.stock)
+          }
+        ]
       };
+
       const res = await api.post("/produtos/criar", payload);
       if (res.data && res.data.success) {
         navigate("/vendedor/produtos");
@@ -331,7 +339,7 @@ function AdicionarProduto() {
                 <label className="form-label">Imagem do Produto</label>
                 <div
                   className="border rounded p-4 d-flex flex-column justify-content-center align-items-center"
-                  style={{ minHeight: 220, borderStyle: "dashed" }}
+                  style={{ minHeight: 220, borderStyle: "dashed", cursor: "pointer" }}
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                   onClick={() => fileInputRef.current?.click()}
