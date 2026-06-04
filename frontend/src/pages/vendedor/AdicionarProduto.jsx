@@ -28,7 +28,7 @@ function AdicionarProduto() {
   });
 
   useEffect(() => {
-    // fetch categories from API
+    // Carregar categorias da API
     api
       .get("/categorias/listar")
       .then((res) => {
@@ -45,28 +45,15 @@ function AdicionarProduto() {
           setCategorias(cats);
         } else {
           console.warn("Formato de resposta de categorias não reconhecido:", res.data);
-          setCategorias([
-            { id: 1, name: "T-shirts" },
-            { id: 2, name: "Casacos" },
-            { id: 3, name: "Calças" },
-            { id: 4, name: "Vestidos" },
-            { id: 5, name: "Sapatilhas" },
-            { id: 6, name: "Acessórios" }
-          ]);
+          setDefaultCategories();
         }
       })
       .catch((err) => {
         console.error("Erro ao carregar categorias:", err);
-        setCategorias([
-          { id: 1, name: "T-shirts" },
-          { id: 2, name: "Casacos" },
-          { id: 3, name: "Calças" },
-          { id: 4, name: "Vestidos" },
-          { id: 5, name: "Sapatilhas" },
-          { id: 6, name: "Acessórios" }
-        ]);
+        setDefaultCategories();
       });
     
+    // Carregar marcas existentes para o dropdown
     api
       .get("/produtos/listar")
       .then((res) => {
@@ -80,6 +67,17 @@ function AdicionarProduto() {
       })
       .catch(() => {});
   }, []);
+
+  function setDefaultCategories() {
+    setCategorias([
+      { id: 1, name: "T-shirts" },
+      { id: 2, name: "Casacos" },
+      { id: 3, name: "Calças" },
+      { id: 4, name: "Vestidos" },
+      { id: 5, name: "Sapatilhas" },
+      { id: 6, name: "Acessórios" }
+    ]);
+  }
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -119,23 +117,32 @@ function AdicionarProduto() {
     setCarregando(true);
     setErro("");
 
+    if (!form.image) {
+      setErro("Por favor, adiciona uma imagem ao produto.");
+      setCarregando(false);
+      return;
+    }
+
     try {
-      // Obtém a data atual formatada como AAAA-MM-DD
       const dataAtual = new Date().toISOString().split("T")[0];
 
       const payload = {
-        ...form,
-        sellerId,
+        name: form.name.trim(),
+        description: form.description.trim(),
         price: Number(form.price),
-        stock: Number(form.stock),
         categoryId: Number(form.categoryId),
-        date: dataAtual, // <-- DATA ADICIONADA AUTOMATICAMENTE AQUI
-        
-        // Enviamos também estruturado como variante para não quebrar o novo backend
+        size: form.size,
+        color: form.color.trim(),
+        brand: form.brand.trim() || "Sem Marca",
+        stock: Number(form.stock),
+        condition: form.condition,
+        image: form.image,
+        sellerId: sellerId,
+        date: dataAtual,
         variants: [
           {
             size: form.size,
-            color: form.color,
+            color: form.color.trim(),
             stock: Number(form.stock)
           }
         ]
@@ -163,19 +170,20 @@ function AdicionarProduto() {
     <div className="container py-5">
       <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
         <div>
-          <h1>Adicionar Produto</h1>
+          <h1 className="fw-bold">Adicionar Produto</h1>
           <p className="text-muted">Preenche os detalhes do produto para o publicar na plataforma.</p>
         </div>
       </div>
 
-      {erro && <div className="alert alert-danger">{erro}</div>}
+      {erro && <div className="alert alert-danger text-center small">{erro}</div>}
 
       <form onSubmit={handleSubmit} className="row g-3" autoComplete="off">
         <div className="col-12">
-          <div className="card p-4">
+          <div className="card p-4 shadow-sm" style={{ borderRadius: "1rem" }}>
             <div className="row g-3">
+              
               <div className="col-12">
-                <label className="form-label">Nome do Produto</label>
+                <label className="form-label fw-semibold text-secondary small">Nome do Produto</label>
                 <input
                   type="text"
                   name="name"
@@ -183,27 +191,25 @@ function AdicionarProduto() {
                   onChange={handleChange}
                   className="form-control"
                   placeholder="Ex: T-shirt Básica Branca"
-                  autoComplete="off"
                   required
                 />
               </div>
 
               <div className="col-12">
-                <label className="form-label">Descrição</label>
+                <label className="form-label fw-semibold text-secondary small">Descrição</label>
                 <textarea
                   name="description"
                   value={form.description}
                   onChange={handleChange}
                   className="form-control"
                   rows={4}
-                  placeholder="Descreve o produto em detalhe..."
-                  autoComplete="off"
+                  placeholder="Descreve o produto em detalhe (material, estado, uso)..."
                   required
                 />
               </div>
 
               <div className="col-md-6">
-                <label className="form-label">Preço (€)</label>
+                <label className="form-label fw-semibold text-secondary small">Preço (€)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -212,13 +218,12 @@ function AdicionarProduto() {
                   onChange={handleChange}
                   className="form-control"
                   placeholder="19.99"
-                  autoComplete="off"
                   required
                 />
               </div>
 
               <div className="col-md-6">
-                <label className="form-label">Categoria</label>
+                <label className="form-label fw-semibold text-secondary small">Categoria</label>
                 <select
                   name="categoryId"
                   value={form.categoryId}
@@ -236,7 +241,7 @@ function AdicionarProduto() {
               </div>
 
               <div className="col-md-6">
-                <label className="form-label">Tamanho</label>
+                <label className="form-label fw-semibold text-secondary small">Tamanho</label>
                 <select
                   name="size"
                   value={form.size}
@@ -255,20 +260,20 @@ function AdicionarProduto() {
               </div>
 
               <div className="col-md-6">
-                <label className="form-label">Cor</label>
+                <label className="form-label fw-semibold text-secondary small">Cor</label>
                 <input
                   type="text"
                   name="color"
                   value={form.color}
                   onChange={handleChange}
                   className="form-control"
-                  placeholder="Ex: Branco"
+                  placeholder="Ex: Preto"
                   required
                 />
               </div>
 
               <div className="col-md-6">
-                <label className="form-label">Marca</label>
+                <label className="form-label fw-semibold text-secondary small">Marca</label>
                 <select
                   name="brandSelect"
                   value={marcas.includes(form.brand) ? form.brand : isOtherBrand ? "__other__" : ""}
@@ -293,34 +298,35 @@ function AdicionarProduto() {
                   <option value="__other__">Outra...</option>
                 </select>
 
-                {isOtherBrand ? (
+                {isOtherBrand && (
                   <input
                     type="text"
                     name="brand"
                     value={form.brand}
                     onChange={(e) => setForm((prev) => ({ ...prev, brand: e.target.value }))}
                     className="form-control mt-2"
-                    placeholder="Ex: Nike"
+                    placeholder="Escreve a marca personalizada"
                     required
                   />
-                ) : null}
+                )}
               </div>
 
               <div className="col-md-6">
-                <label className="form-label">Stock</label>
+                <label className="form-label fw-semibold text-secondary small">Stock</label>
                 <input
                   type="number"
                   name="stock"
                   value={form.stock}
                   onChange={handleChange}
                   className="form-control"
-                  placeholder="10"
+                  placeholder="1"
+                  min="1"
                   required
                 />
               </div>
 
               <div className="col-md-6">
-                <label className="form-label">Estado</label>
+                <label className="form-label fw-semibold text-secondary small">Estado do Artigo</label>
                 <select
                   name="condition"
                   value={form.condition}
@@ -336,16 +342,29 @@ function AdicionarProduto() {
               </div>
 
               <div className="col-12">
-                <label className="form-label">Imagem do Produto</label>
+                <label className="form-label fw-semibold text-secondary small">Imagem do Produto</label>
                 <div
-                  className="border rounded p-4 d-flex flex-column justify-content-center align-items-center"
+                  className="border rounded p-4 d-flex flex-column justify-content-center align-items-center bg-light"
                   style={{ minHeight: 220, borderStyle: "dashed", cursor: "pointer" }}
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {preview ? (
-                    <img src={preview} alt="preview" style={{ maxWidth: "100%", maxHeight: 180 }} />
+                    <div className="position-relative">
+                      <img src={preview} alt="preview" className="img-fluid rounded" style={{ maxHeight: 180 }} />
+                      <button 
+                        type="button" 
+                        className="btn btn-sm btn-danger position-absolute top-0 end-0 m-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPreview(null);
+                          setForm(prev => ({ ...prev, image: "" }));
+                        }}
+                      >
+                        Remover
+                      </button>
+                    </div>
                   ) : (
                     <>
                       <div className="mb-2 text-center">
@@ -354,7 +373,7 @@ function AdicionarProduto() {
                           <path fillRule="evenodd" d="M7.5 6.5v4.793l-1.146-1.147-.708.708L8 13.207l2.354-2.353-.708-.708L8.5 11.293V6.5h-1z"/>
                         </svg>
                       </div>
-                      <div className="text-center text-muted">Arrasta a imagem ou clica para procurar</div>
+                      <div className="text-center text-muted fw-medium">Arrasta a imagem ou clica para procurar</div>
                       <div className="text-center text-muted small">PNG, JPG até 5MB</div>
                     </>
                   )}
@@ -368,20 +387,27 @@ function AdicionarProduto() {
                 </div>
               </div>
 
-              <div className="col-12">
+              <div className="col-12 mt-4">
                 <div className="d-flex gap-2">
-                  <button className="btn btn-primary" type="submit" disabled={carregando}>
-                    {carregando ? "A criar..." : "Guardar Produto"}
+                  <button className="btn btn-primary px-4" type="submit" disabled={carregando}>
+                    {carregando ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        A guardar...
+                      </>
+                    ) : "Guardar Produto"}
                   </button>
                   <button
-                    className="btn btn-outline-secondary"
+                    className="btn btn-outline-secondary px-4"
                     type="button"
                     onClick={() => navigate("/vendedor/produtos")}
+                    disabled={carregando}
                   >
                     Cancelar
                   </button>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
