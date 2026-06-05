@@ -2,9 +2,13 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../../services/api";
 import { adicionarAoCarrinho } from "../../utils/carrinhoUtils";
+import { obterUtilizador } from "../../utils/authUtils";
 
 function DetalhesProduto() {
   const { id } = useParams();
+
+  const utilizador = obterUtilizador();
+  const podeComprar = !utilizador || utilizador.role === "comprador";
 
   const [produto, setProduto] = useState(null);
   const [erro, setErro] = useState("");
@@ -201,15 +205,22 @@ function DetalhesProduto() {
             </li>
           </ul>
 
-          <button
-            className="btn btn-primary btn-lg w-100"
-            onClick={handleAdicionarCarrinho}
-            disabled={variantes.length > 0 && !temStock}
-          >
-            {temStock || variantes.length === 0
-              ? "Adicionar ao carrinho"
-              : "Produto esgotado"}
-          </button>
+          {podeComprar ? (
+            <button
+              className="btn btn-primary btn-lg w-100"
+              onClick={handleAdicionarCarrinho}
+              disabled={variantes.length > 0 && !temStock}
+            >
+              {temStock || variantes.length === 0
+                ? "Adicionar ao carrinho"
+                : "Produto esgotado"}
+            </button>
+          ) : (
+            <div className="alert alert-secondary mb-0">
+              Este perfil pode consultar produtos, mas não pode adicionar ao
+              carrinho.
+            </div>
+          )}
         </div>
       </div>
     </div>

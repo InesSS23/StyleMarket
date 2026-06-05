@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import RotaProtegida from "./components/RotaProtegida";
+import RotaPublicaOuPerfil from "./components/RotaPublicaOuPerfil";
 
 import LayoutPrincipal from "./layouts/LayoutPrincipal";
 import LayoutVendedor from "./layouts/LayoutVendedor";
@@ -35,12 +36,20 @@ function App() {
           <Route index element={<Home />} />
           <Route path="catalogo" element={<Catalogo />} />
           <Route path="produto/:id" element={<DetalhesProduto />} />
-          <Route path="carrinho" element={<Carrinho />} />
+
+          <Route
+            path="carrinho"
+            element={
+              <RotaPublicaOuPerfil perfisPermitidos={["comprador"]}>
+                <Carrinho />
+              </RotaPublicaOuPerfil>
+            }
+          />
 
           <Route
             path="finalizar-compra"
             element={
-              <RotaProtegida perfisPermitidos={["comprador", "vendedor", "admin"]}>
+              <RotaProtegida perfisPermitidos={["comprador"]}>
                 <FinalizarCompra />
               </RotaProtegida>
             }

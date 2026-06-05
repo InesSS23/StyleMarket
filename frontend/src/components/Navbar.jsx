@@ -44,24 +44,29 @@ function Navbar() {
               </Link>
             </li>
 
-            <li className="nav-item">
-              <Link className="nav-link" to="/carrinho">
-                Carrinho
-              </Link>
-            </li>
+            {(!utilizador || utilizador.role === "comprador") && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/carrinho">
+                  Carrinho
+                </Link>
+              </li>
+            )}
 
             {utilizador && utilizador.role === "vendedor" && (
               <li className="nav-item">
-                <Link className="nav-link" to="/vendedor/dashboard">
-                  Vendedor
+                <Link
+                  className="nav-link fw-semibold"
+                  to="/vendedor/dashboard"
+                >
+                  Painel Vendedor
                 </Link>
               </li>
             )}
 
             {utilizador && utilizador.role === "admin" && (
               <li className="nav-item">
-                <Link className="nav-link" to="/admin/dashboard">
-                  Admin
+                <Link className="nav-link fw-semibold" to="/admin/dashboard">
+                  Painel Admin
                 </Link>
               </li>
             )}
@@ -96,7 +101,10 @@ function Navbar() {
 
             {utilizador && (
               <li className="nav-item ms-lg-2">
-                <button className="btn btn-outline-danger" onClick={handleLogout}>
+                <button
+                  className="btn btn-outline-danger"
+                  onClick={handleLogout}
+                >
                   Sair
                 </button>
               </li>

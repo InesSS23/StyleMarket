@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom";
 import { adicionarAoCarrinho } from "../utils/carrinhoUtils";
+import { obterUtilizador } from "../utils/authUtils";
 
 function ProductCard({ produto }) {
+  const utilizador = obterUtilizador();
+
+  const podeComprar = !utilizador || utilizador.role === "comprador";
+
   function handleAdicionarCarrinho() {
     adicionarAoCarrinho(produto);
     alert("Produto adicionado ao carrinho.");
@@ -34,9 +39,14 @@ function ProductCard({ produto }) {
             Ver detalhes
           </Link>
 
-          <button className="btn btn-primary" onClick={handleAdicionarCarrinho}>
-            Adicionar ao carrinho
-          </button>
+          {podeComprar && (
+            <button
+              className="btn btn-primary"
+              onClick={handleAdicionarCarrinho}
+            >
+              Adicionar ao carrinho
+            </button>
+          )}
         </div>
       </div>
     </div>
