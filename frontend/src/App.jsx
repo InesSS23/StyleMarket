@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import RotaProtegida from "./components/RotaProtegida";
 import RotaPublicaOuPerfil from "./components/RotaPublicaOuPerfil";
@@ -82,6 +82,7 @@ function App() {
             </RotaProtegida>
           }
         >
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<DashboardAdmin />} />
           <Route path="utilizadores" element={<GerirUtilizadores />} />
           <Route path="produtos" element={<GerirProdutos />} />
