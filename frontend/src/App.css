@@ -970,3 +970,86 @@
   background: #e5e7eb;
   color: #374151;
 }
+
+/*ADMIN USERS*/
+.admin-filter-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.admin-search-input,
+.admin-select {
+  height: 38px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  background: #ffffff;
+  color: #111827;
+}
+
+.admin-results-text {
+  color: #4b5563;
+  margin-bottom: 14px;
+}
+
+.admin-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.admin-action-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.admin-action {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.admin-action--blue {
+  border: 1px solid #2563eb;
+  color: #2563eb;
+}
+
+.admin-action--dark {
+  border: 1px solid #6b7280;
+  color: #374151;
+}
+
+.admin-action--yellow {
+  border: 1px solid #f59e0b;
+  color: #f59e0b;
+}
+
+.admin-action--red {
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
