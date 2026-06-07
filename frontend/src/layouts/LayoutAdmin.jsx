@@ -2,38 +2,29 @@ import { Link, Outlet } from "react-router-dom";
 
 function LayoutAdmin() {
   return (
-    <div className="d-flex layout-dashboard">
-      <aside className="sidebar-dashboard bg-dark text-white p-4">
-        <h4 className="mb-4">Admin</h4>
+    <div className="admin-layout">
+      <aside className="admin-sidebar">
+        <div>
+          <div className="admin-logo">
+            <h5>StyleMarket</h5>
+            <small>Painel Admin</small>
+          </div>
 
-        <nav className="nav flex-column gap-2">
-          <Link className="nav-link text-white" to="/admin/dashboard">
-            Dashboard
-          </Link>
+          <nav className="admin-nav">
+            <Link to="/admin/dashboard">Dashboard</Link>
+            <Link to="/admin/utilizadores">Utilizadores</Link>
+            <Link to="/admin/produtos">Produtos</Link>
+            <Link to="/admin/categorias">Categorias</Link>
+            <Link to="/admin/encomendas">Encomendas</Link>
+          </nav>
+        </div>
 
-          <Link className="nav-link text-white" to="/admin/utilizadores">
-            Utilizadores
-          </Link>
-
-          <Link className="nav-link text-white" to="/admin/produtos">
-            Produtos
-          </Link>
-
-          <Link className="nav-link text-white" to="/admin/categorias">
-            Categorias
-          </Link>
-
-          <Link className="nav-link text-white" to="/admin/encomendas">
-            Encomendas
-          </Link>
-
-          <Link className="nav-link text-white" to="/">
-            Voltar à Loja
-          </Link>
-        </nav>
+        <Link className="admin-back-link" to="/">
+        Voltar à Loja
+        </Link>
       </aside>
 
-      <main className="flex-grow-1 p-4">
+      <main className="admin-content">
         <Outlet />
       </main>
     </div>
