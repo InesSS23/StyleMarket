@@ -971,7 +971,12 @@
   color: #374151;
 }
 
-/*ADMIN USERS*/
+.admin-badge--red {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/*ADMIN UTILIZADORES*/
 .admin-filter-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -983,7 +988,17 @@
   margin-bottom: 22px;
 }
 
-.admin-search-input,
+.admin-search-input {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  background: #ffffff;
+  color: #111827;
+}
+
 .admin-select {
   height: 38px;
   border: 1px solid #d1d5db;
@@ -1104,4 +1119,86 @@
 
 .admin-category-icon {
   font-size: 1.25rem;
+}
+
+/*ADMIN ENCOMENDAS*/
+.admin-order-summary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.admin-order-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.85rem;
+  background: #ffffff;
+}
+
+.admin-order-pill--yellow {
+  color: #92400e;
+}
+
+.admin-order-pill--purple {
+  color: #6d28d9;
+}
+
+.admin-order-pill--blue {
+  color: #1d4ed8;
+}
+
+.admin-order-pill--green {
+  color: #166534;
+}
+
+.admin-order-pill--red {
+  color: #991b1b;
+}
+
+.admin-single-filter-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 22px;
+}
+
+.admin-items-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.admin-order-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-details-button {
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.admin-next-button {
+  border: 1px solid #6b7280;
+  color: #374151;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
 }
