@@ -1079,3 +1079,29 @@
   object-fit: cover;
   border: 1px solid #e5e7eb;
 }
+
+/*ADMIN CATEGORIAS*/
+.admin-page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.admin-primary-button {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-primary-button:hover {
+  background: #1d4ed8;
+}
+
+.admin-category-icon {
+  font-size: 1.25rem;
+}
