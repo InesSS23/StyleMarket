@@ -1,87 +1,75 @@
+import { useEffect, useState } from "react";
+import api from "../../services/api";
+
 function GerirProdutos() {
-  //ATUALIZAR IMAGENS DOS PRODUTOS - ALGUMAS IMAGENS ESTÃO REPETIDAS PARA PODER ALINHAR O PROTÓTIPO COM O FIGMA
-  const produtos = [
-   {
-    id: 1,
-    imagem: "/images/produtos/tshirt-branca.jpg",
-    nome: "T-Shirt Básica Branca",
-    categoria: "T-shirts",
-    vendedor: "João Silva",
-    preco: "19.99€",
-    stock: 15,
-    estado: "Novo",
-  },
-  {
-    id: 2,
-    imagem: "/images/produtos/casaco-denim.jpg",
-    nome: "Casaco Denim Vintage",
-    categoria: "Casacos",
-    vendedor: "Maria Santos",
-    preco: "45.00€",
-    stock: 8,
-    estado: "Usado - Como Novo",
-  },
-  {
-    id: 3,
-    imagem: "/images/produtos/calcas-jeans.jpg",
-    nome: "Calças Jeans Skinny",
-    categoria: "Calças",
-    vendedor: "João Silva",
-    preco: "35.50€",
-    stock: 12,
-    estado: "Novo",
-  },
-  {
-    id: 4,
-    imagem: "/images/produtos/tshirt-branca.jpg",
-    nome: "Vestido Floral Verão",
-    categoria: "Vestidos",
-    vendedor: "Ana Ferreira",
-    preco: "52.00€",
-    stock: 5,
-    estado: "Novo",
-  },
-  {
-    id: 5,
-    imagem: "/images/produtos/casaco-denim.jpg",
-    nome: "Sapatilhas Desportivas",
-    categoria: "Sapatilhas",
-    vendedor: "Maria Santos",
-    preco: "68.99€",
-    stock: 20,
-    estado: "Novo",
-  },
-  {
-    id: 6,
-    imagem: "/images/produtos/calcas-jeans.jpg",
-    nome: "Mochila Urban Style",
-    categoria: "Acessórios",
-    vendedor: "Ana Ferreira",
-    preco: "29.90€",
-    stock: 10,
-    estado: "Novo",
-  },
-  {
-    id: 7,
-    imagem: "/images/produtos/tshirt-branca.jpg",
-    nome: "Sweater Oversized",
-    categoria: "Casacos",
-    vendedor: "João Silva",
-    preco: "38.00€",
-    stock: 7,
-    estado: "Novo",
-  },
-  {
-    id: 8,
-    imagem: "/images/produtos/casaco-denim.jpg",
-    nome: "Camisa Linho Rosa",
-    categoria: "T-shirts",
-    vendedor: "Ana Ferreira",
-    preco: "42.50€",
-    stock: 6,
-    estado: "Novo",
-  },
-  ];
+  const [produtos, setProdutos] = useState([]);
+  const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
+
+  useEffect(() => {
+    carregarProdutos();
+  }, []);
+
+  function carregarProdutos() {
+    setCarregando(true);
+
+    api
+      .get("/produtos/listar")
+      .then((response) => {
+        if (response.data.success) {
+          setProdutos(response.data.data);
+        }
+      })
+      .catch(() => {
+        setErro("Erro ao carregar produtos.");
+      })
+      .finally(() => {
+        setCarregando(false);
+      });
+  }
+
+  function imagemProduto(produto) {
+    if (produto.image) return produto.image;
+
+    return "/images/produtos/tshirt-branca.jpg";
+  }
+
+  function formatarPreco(valor) {
+    return `${Number(valor || 0).toFixed(2)}€`;
+  }
+
+  function estadoClass(estado) {
+    if (estado === "Novo") return "admin-badge admin-badge--green";
+    if (estado === "Usado - Como Novo") return "admin-badge admin-badge--blue";
+    if (estado === "Usado - Bom Estado") return "admin-badge admin-badge--yellow";
+
+    return "admin-badge admin-badge--gray";
+  }
+
+  function apagarProduto(id) {
+    if (!window.confirm("Tens a certeza que queres apagar este produto?")) return;
+
+    api
+      .delete(`/produtos/apagar/${id}`)
+      .then((response) => {
+        if (response.data.success) {
+          carregarProdutos();
+        } else {
+          alert("Não foi possível apagar o produto.");
+        }
+      })
+      .catch(() => {
+        alert("Erro ao apagar produto.");
+      });
+  }
+
+  function verProduto(produto) {
+    alert(
+      `Produto: ${produto.name}\nMarca: ${produto.brand || "Sem marca"}\nPreço: ${formatarPreco(
+        produto.price
+      )}\nStock: ${produto.stock}`
+    );
+  }
 
   return (
     <div className="admin-dashboard">
@@ -91,7 +79,10 @@ function GerirProdutos() {
       </div>
 
       <div className="admin-products-filter-card">
-        <input className="admin-search-input" placeholder="Pesquisar por nome ou marca..." />
+        <input
+          className="admin-search-input"
+          placeholder="Pesquisar por nome ou marca..."
+        />
 
         <select className="admin-select">
           <option>Todas as Categorias</option>
@@ -118,6 +109,8 @@ function GerirProdutos() {
         </select>
       </div>
 
+      {erro && <div className="alert alert-danger">{erro}</div>}
+
       <p className="admin-results-text">
         A mostrar {produtos.length} produtos
       </p>
@@ -138,37 +131,82 @@ function GerirProdutos() {
           </thead>
 
           <tbody>
-            {produtos.map((produto) => (
-              <tr key={produto.id}>
-                <td>#{produto.id}</td>
-
-                <td>
-                  <div className="admin-product-cell">
-                    <img src={produto.imagem} alt={produto.nome} />
-                    <strong>{produto.nome}</strong>
-                  </div>
-                </td>
-
-                <td>{produto.categoria}</td>
-                <td>{produto.vendedor}</td>
-                <td><strong>{produto.preco}</strong></td>
-                <td>{produto.stock}</td>
-
-                <td>
-                  <span className="admin-badge admin-badge--green">
-                    {produto.estado}
-                  </span>
-                </td>
-
-                <td>
-                  <div className="admin-action-buttons">
-                    <button className="admin-action admin-action--blue">👁</button>
-                    <button className="admin-action admin-action--dark">✎</button>
-                    <button className="admin-action admin-action--red">🗑</button>
-                  </div>
+            {carregando && (
+              <tr>
+                <td colSpan="8" className="text-center text-muted">
+                  A carregar produtos...
                 </td>
               </tr>
-            ))}
+            )}
+
+            {!carregando &&
+              produtos.map((produto) => (
+                <tr key={produto.id}>
+                  <td>#{produto.id}</td>
+
+                  <td>
+                    <div className="admin-product-cell">
+                      <img src={imagemProduto(produto)} alt={produto.name} />
+                      <strong>{produto.name}</strong>
+                    </div>
+                  </td>
+
+                  <td>{produto.category?.name || "Sem categoria"}</td>
+
+                  <td>
+                    {produto.seller?.storeName ||
+                      produto.seller?.name ||
+                      "Sem vendedor"}
+                  </td>
+
+                  <td>
+                    <strong>{formatarPreco(produto.price)}</strong>
+                  </td>
+
+                  <td>{produto.stock}</td>
+
+                  <td>
+                    <span className={estadoClass(produto.condition)}>
+                      {produto.condition}
+                    </span>
+                  </td>
+
+                  <td>
+                    <div className="admin-action-buttons">
+                      <button
+                        className="admin-action admin-action--blue"
+                        onClick={() => verProduto(produto)}
+                      >
+                        👁
+                      </button>
+
+                      <button
+                        className="admin-action admin-action--dark"
+                        onClick={() =>
+                          alert("A edição de produtos pode ser feita no painel do vendedor.")
+                        }
+                      >
+                        ✎
+                      </button>
+
+                      <button
+                        className="admin-action admin-action--red"
+                        onClick={() => apagarProduto(produto.id)}
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+            {!carregando && produtos.length === 0 && (
+              <tr>
+                <td colSpan="8" className="text-center text-muted">
+                  Ainda não existem produtos registados.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </section>
