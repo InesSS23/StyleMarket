@@ -1,66 +1,32 @@
+import { useEffect, useState } from "react";
+import api from "../../services/api";
+
 function GerirEncomendas() {
-  const encomendas = [
-    {
-      numero: "#1001",
-      comprador: "Maria Santos",
-      email: "maria@email.com",
-      itens: 3,
-      total: "104.99€",
-      estado: "Concluída",
-      data: "28/04/2026",
-      avancar: false,
-    },
-    {
-      numero: "#1002",
-      comprador: "Carlos Oliveira",
-      email: "carlos@email.com",
-      itens: 1,
-      total: "68.99€",
-      estado: "Enviada",
-      data: "01/05/2026",
-      avancar: true,
-    },
-    {
-      numero: "#1003",
-      comprador: "Sofia Rodrigues",
-      email: "sofia@email.com",
-      itens: 4,
-      total: "167.50€",
-      estado: "Paga",
-      data: "03/05/2026",
-      avancar: true,
-    },
-    {
-      numero: "#1004",
-      comprador: "Tiago Mendes",
-      email: "tiago@email.com",
-      itens: 1,
-      total: "52.00€",
-      estado: "Concluída",
-      data: "25/04/2026",
-      avancar: false,
-    },
-    {
-      numero: "#1005",
-      comprador: "Maria Santos",
-      email: "maria@email.com",
-      itens: 1,
-      total: "38.00€",
-      estado: "Pendente",
-      data: "08/05/2026",
-      avancar: true,
-    },
-    {
-      numero: "#1006",
-      comprador: "Ana Ferreira",
-      email: "ana@email.com",
-      itens: 2,
-      total: "87.50€",
-      estado: "Cancelada",
-      data: "30/04/2026",
-      avancar: false,
-    },
-  ];
+  const [encomendas, setEncomendas] = useState([]);
+  const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
+
+  useEffect(() => {
+    carregarEncomendas();
+  }, []);
+
+  function carregarEncomendas() {
+    setCarregando(true);
+
+    api
+      .get("/encomendas/listar")
+      .then((response) => {
+        if (response.data.success) {
+          setEncomendas(response.data.data);
+        }
+      })
+      .catch(() => {
+        setErro("Erro ao carregar encomendas.");
+      })
+      .finally(() => {
+        setCarregando(false);
+      });
+  }
 
   function estadoClass(estado) {
     if (estado === "Concluída") return "admin-badge admin-badge--green";
@@ -71,6 +37,32 @@ function GerirEncomendas() {
     return "admin-badge admin-badge--gray";
   }
 
+  function contarEstado(estado) {
+    return encomendas.filter((encomenda) => encomenda.status === estado).length;
+  }
+
+  function formatarPreco(valor) {
+    return `${Number(valor || 0).toFixed(2)}€`;
+  }
+
+  function formatarData(data) {
+    if (!data) return "-";
+
+    return new Date(data).toLocaleDateString("pt-PT");
+  }
+
+  function podeAvancar(status) {
+    return status === "Pendente" || status === "Paga" || status === "Enviada";
+  }
+
+  function detalhesEncomenda(encomenda) {
+    alert(
+      `Encomenda #${encomenda.id}\nComprador: ${
+        encomenda.buyer?.name || encomenda.customerName || "Sem nome"
+      }\nTotal: ${formatarPreco(encomenda.total)}\nEstado: ${encomenda.status}`
+    );
+  }
+
   return (
     <div className="admin-dashboard">
       <div className="admin-page-header">
@@ -79,11 +71,25 @@ function GerirEncomendas() {
       </div>
 
       <div className="admin-order-summary">
-        <span className="admin-order-pill admin-order-pill--yellow">1 Pendente</span>
-        <span className="admin-order-pill admin-order-pill--purple">1 Paga</span>
-        <span className="admin-order-pill admin-order-pill--blue">1 Enviada</span>
-        <span className="admin-order-pill admin-order-pill--green">2 Concluída</span>
-        <span className="admin-order-pill admin-order-pill--red">1 Cancelada</span>
+        <span className="admin-order-pill admin-order-pill--yellow">
+          {contarEstado("Pendente")} Pendente
+        </span>
+
+        <span className="admin-order-pill admin-order-pill--purple">
+          {contarEstado("Paga")} Paga
+        </span>
+
+        <span className="admin-order-pill admin-order-pill--blue">
+          {contarEstado("Enviada")} Enviada
+        </span>
+
+        <span className="admin-order-pill admin-order-pill--green">
+          {contarEstado("Concluída")} Concluída
+        </span>
+
+        <span className="admin-order-pill admin-order-pill--red">
+          {contarEstado("Cancelada")} Cancelada
+        </span>
       </div>
 
       <div className="admin-single-filter-card">
@@ -92,6 +98,8 @@ function GerirEncomendas() {
           placeholder="Pesquisar por número de encomenda ou comprador..."
         />
       </div>
+
+      {erro && <div className="alert alert-danger">{erro}</div>}
 
       <p className="admin-results-text">
         A mostrar {encomendas.length} encomendas
@@ -112,46 +120,78 @@ function GerirEncomendas() {
           </thead>
 
           <tbody>
-            {encomendas.map((encomenda) => (
-              <tr key={encomenda.numero}>
-                <td>
-                  <strong>{encomenda.numero}</strong>
-                </td>
-
-                <td>
-                  <strong>{encomenda.comprador}</strong>
-                  <small>{encomenda.email}</small>
-                </td>
-
-                <td>
-                  <span className="admin-items-circle">
-                    {encomenda.itens}
-                  </span>
-                </td>
-
-                <td>
-                  <strong>{encomenda.total}</strong>
-                </td>
-
-                <td>
-                  <span className={estadoClass(encomenda.estado)}>
-                    {encomenda.estado}
-                  </span>
-                </td>
-
-                <td>{encomenda.data}</td>
-
-                <td>
-                  <div className="admin-order-actions">
-                    <button className="admin-details-button">👁 Detalhes</button>
-
-                    {encomenda.avancar && (
-                      <button className="admin-next-button">↻ Avançar</button>
-                    )}
-                  </div>
+            {carregando && (
+              <tr>
+                <td colSpan="7" className="text-center text-muted">
+                  A carregar encomendas...
                 </td>
               </tr>
-            ))}
+            )}
+
+            {!carregando &&
+              encomendas.map((encomenda) => (
+                <tr key={encomenda.id}>
+                  <td>
+                    <strong>#{encomenda.id}</strong>
+                  </td>
+
+                  <td>
+                    <strong>
+                      {encomenda.buyer?.name ||
+                        encomenda.customerName ||
+                        "Sem nome"}
+                    </strong>
+                    <small>
+                      {encomenda.buyer?.email ||
+                        encomenda.customerEmail ||
+                        "Sem email"}
+                    </small>
+                  </td>
+
+                  <td>
+                    <span className="admin-items-circle">
+                      {encomenda.orderItems?.length || 0}
+                    </span>
+                  </td>
+
+                  <td>
+                    <strong>{formatarPreco(encomenda.total)}</strong>
+                  </td>
+
+                  <td>
+                    <span className={estadoClass(encomenda.status)}>
+                      {encomenda.status}
+                    </span>
+                  </td>
+
+                  <td>{formatarData(encomenda.createdAt)}</td>
+
+                  <td>
+                    <div className="admin-order-actions">
+                      <button
+                        className="admin-details-button"
+                        onClick={() => detalhesEncomenda(encomenda)}
+                      >
+                        👁 Detalhes
+                      </button>
+
+                      {podeAvancar(encomenda.status) && (
+                        <button className="admin-next-button">
+                          ↻ Avançar
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+            {!carregando && encomendas.length === 0 && (
+              <tr>
+                <td colSpan="7" className="text-center text-muted">
+                  Ainda não existem encomendas registadas.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </section>
