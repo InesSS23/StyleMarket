@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import { getSellerId } from "../../services/seller";
@@ -14,7 +14,7 @@ function ProdutosVendedor() {
 
   const sellerId = getSellerId();
 
-  function carregarProdutos() {
+  const carregarProdutos = useCallback(() => {
     setCarregando(true);
 
     api
@@ -31,11 +31,12 @@ function ProdutosVendedor() {
         setErro("Erro ao ligar ao servidor.");
       })
       .finally(() => setCarregando(false));
-  }
+  }, [sellerId]);
 
   useEffect(() => {
-    carregarProdutos();
-  }, [sellerId]);
+    const timer = setTimeout(carregarProdutos, 0);
+    return () => clearTimeout(timer);
+  }, [carregarProdutos]);
 
   const produtosFiltrados = produtos.filter(
     (produto) =>

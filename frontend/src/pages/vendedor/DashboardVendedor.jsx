@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import { getSellerId } from "../../services/seller";
@@ -11,21 +11,7 @@ function DashboardVendedor() {
 
   const sellerId = getSellerId();
 
-  useEffect(() => {
-    carregarProdutos();
-    api
-      .get(`/encomendas/listar/vendedor/${sellerId}`)
-      .then((encomendasResponse) => {
-        if (encomendasResponse.data.success) {
-          setEncomendas(encomendasResponse.data.data);
-        }
-      })
-      .catch(() => {
-        setErro("Erro ao carregar os dados do vendedor.");
-      });
-  }, [sellerId]);
-
-  function carregarProdutos() {
+  const carregarProdutos = useCallback(() => {
     setCarregando(true);
     api
       .get(`/produtos/listar/vendedor/${sellerId}`)
@@ -36,7 +22,25 @@ function DashboardVendedor() {
       })
       .catch(() => setErro("Erro ao carregar os produtos."))
       .finally(() => setCarregando(false));
-  }
+  }, [sellerId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      carregarProdutos();
+      api
+        .get(`/encomendas/listar/vendedor/${sellerId}`)
+        .then((encomendasResponse) => {
+          if (encomendasResponse.data.success) {
+            setEncomendas(encomendasResponse.data.data);
+          }
+        })
+        .catch(() => {
+          setErro("Erro ao carregar os dados do vendedor.");
+        });
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [carregarProdutos, sellerId]);
 
   function apagarProduto(id) {
     if (!window.confirm("Tem a certeza que quer apagar este produto?")) return;
@@ -58,18 +62,6 @@ function DashboardVendedor() {
   const pedidosPendentes = encomendas.filter((order) => order.status === "Pendente").length;
   const produtosAtivos = produtos.length;
 
-  const topProduto = encomendas
-    .flatMap((order) => order.orderItems)
-    .reduce((acc, item) => {
-      const key = item.product?.id || item.productId;
-      const nome = item.product?.name || "Produto";
-      if (!acc[key]) acc[key] = { nome, quantidade: 0 };
-      acc[key].quantidade += Number(item.quantity || 0);
-      return acc;
-    }, {});
-
-  const produtoMaisVendido = Object.values(topProduto).sort((a, b) => b.quantidade - a.quantidade)[0];
-
   return (
     <div className="container py-5">
       <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
@@ -84,6 +76,7 @@ function DashboardVendedor() {
       </div>
 
       {erro && <div className="alert alert-danger">{erro}</div>}
+      {carregando && <div className="alert alert-secondary">A carregar dados do vendedor...</div>}
 
       <div className="row g-3 mb-4">
         <div className="col-sm-6 col-xl-3">

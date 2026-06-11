@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 import { getSellerId } from "../../services/seller";
@@ -19,7 +19,10 @@ function EditarProduto() {
   });
   const [categorias, setCategorias] = useState([]);
   const [marcas, setMarcas] = useState([]);
-  const [isOtherBrand, setIsOtherBrand] = useState(false);
+  const isOtherBrand = useMemo(() => {
+    const brand = (form.brand || "").trim();
+    return brand !== "" && !marcas.includes(brand);
+  }, [form.brand, marcas]);
   const [preview, setPreview] = useState(null);
   const fileInputRef = useRef(null);
   const [erro, setErro] = useState("");
@@ -76,7 +79,6 @@ function EditarProduto() {
           const uniq = Array.from(new Set(produtos.map((p) => (p.brand || "").trim()).filter(Boolean)));
           const sorted = uniq.sort();
           setMarcas(sorted);
-          if (form.brand && !sorted.includes(form.brand)) setIsOtherBrand(true);
         }
       })
       .catch(() => {});
@@ -260,10 +262,8 @@ function EditarProduto() {
                   onChange={(e) => {
                     const val = e.target.value;
                     if (val === "__other__") {
-                      setIsOtherBrand(true);
                       setForm((prev) => ({ ...prev, brand: "" }));
                     } else {
-                      setIsOtherBrand(false);
                       setForm((prev) => ({ ...prev, brand: val }));
                     }
                   }}

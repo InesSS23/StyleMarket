@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../services/api";
 
 function GerirEncomendas() {
@@ -6,11 +6,7 @@ function GerirEncomendas() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
 
-  useEffect(() => {
-    carregarEncomendas();
-  }, []);
-
-  function carregarEncomendas() {
+  const carregarEncomendas = useCallback(() => {
     setCarregando(true);
 
     api
@@ -26,7 +22,12 @@ function GerirEncomendas() {
       .finally(() => {
         setCarregando(false);
       });
-  }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(carregarEncomendas, 0);
+    return () => clearTimeout(timer);
+  }, [carregarEncomendas]);
 
   function estadoClass(estado) {
     if (estado === "Concluída") return "admin-badge admin-badge--green";

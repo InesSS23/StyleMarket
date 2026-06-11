@@ -9,25 +9,27 @@ function VendasVendedor() {
   const sellerId = getSellerId();
 
   useEffect(() => {
-    setCarregando(true);
-    api
-      .get(`/encomendas/listar/vendedor/${sellerId}`)
-      .then((response) => {
+    const carregarVendas = async () => {
+      setCarregando(true);
+      try {
+        const response = await api.get(`/encomendas/listar/vendedor/${sellerId}`);
         if (response.data.success) {
           setEncomendas(response.data.data);
           setErro("");
         } else {
           setErro("Não foi possível carregar as vendas.");
         }
-      })
-      .catch(() => {
+      } catch {
         setErro("Erro ao ligar ao servidor.");
-      })
-      .finally(() => setCarregando(false));
+      } finally {
+        setCarregando(false);
+      }
+    };
+
+    carregarVendas();
   }, [sellerId]);
 
   const totalReceita = encomendas.reduce((total, order) => total + Number(order.total || 0), 0);
-  const totalVendas = encomendas.reduce((total, order) => total + order.orderItems.length, 0);
   const produtosVendidos = encomendas.reduce(
     (total, order) =>
       total + order.orderItems.reduce((itemTotal, item) => itemTotal + Number(item.quantity || 0), 0),
