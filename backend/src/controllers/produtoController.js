@@ -1,4 +1,11 @@
-const { Product, ProductVariant, Category, User } = require("../models");
+const {
+  sequelize,
+  Product,
+  ProductVariant,
+  OrderItem,
+  Category,
+  User,
+} = require("../models");
 
 const controllers = {};
 
@@ -8,6 +15,8 @@ const includeProduto = [
   },
   {
     model: ProductVariant,
+    separate: true,
+    order: [["id", "ASC"]],
   },
   {
     model: User,
@@ -15,6 +24,71 @@ const includeProduto = [
     attributes: ["id", "name", "email", "storeName"],
   },
 ];
+
+function criarErro(status, message) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
+
+function prepararVariantes(variants, fallback = {}) {
+  let variantesRecebidas = [];
+
+  if (Array.isArray(variants) && variants.length > 0) {
+    variantesRecebidas = variants;
+  } else {
+    variantesRecebidas = [
+      {
+        size: fallback.size || "Único",
+        color: fallback.color || "Única",
+        stock: fallback.stock || 0,
+      },
+    ];
+  }
+
+  const variantesPreparadas = variantesRecebidas.map((variant) => {
+    const stock = Number(variant.stock);
+
+    return {
+      id: variant.id ? Number(variant.id) : null,
+      size: String(variant.size || "").trim(),
+      color: String(variant.color || "").trim(),
+      stock,
+    };
+  });
+
+  const temCamposVazios = variantesPreparadas.some(
+    (variant) => !variant.size || !variant.color
+  );
+
+  if (temCamposVazios) {
+    throw criarErro(400, "Preenche o tamanho e a cor de todas as opções.");
+  }
+
+  const temStockInvalido = variantesPreparadas.some(
+    (variant) => !Number.isInteger(variant.stock) || variant.stock < 0
+  );
+
+  if (temStockInvalido) {
+    throw criarErro(
+      400,
+      "O stock de cada opção deve ser um número inteiro igual ou superior a 0."
+    );
+  }
+
+  const combinacoes = variantesPreparadas.map(
+    (variant) => `${variant.size.toLowerCase()}|${variant.color.toLowerCase()}`
+  );
+
+  if (new Set(combinacoes).size !== combinacoes.length) {
+    throw criarErro(
+      400,
+      "Não podes repetir a mesma combinação de tamanho e cor."
+    );
+  }
+
+  return variantesPreparadas;
+}
 
 /* Listar produtos */
 controllers.listar = async (req, res) => {
@@ -40,7 +114,14 @@ controllers.listar = async (req, res) => {
 /* Listar produtos do vendedor */
 controllers.listarPorVendedor = async (req, res) => {
   try {
-    const { sellerId } = req.params;
+    const sellerId = Number(req.params.sellerId);
+
+    if (!sellerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Vendedor inválido.",
+      });
+    }
 
     const data = await Product.findAll({
       where: { sellerId },
@@ -63,6 +144,8 @@ controllers.listarPorVendedor = async (req, res) => {
 
 /* Criar produto */
 controllers.criar = async (req, res) => {
+  let transaction = null;
+
   try {
     const {
       name,
@@ -79,58 +162,73 @@ controllers.criar = async (req, res) => {
       variants,
     } = req.body;
 
-    if (!name || !description || !price) {
+    if (!name || !description || !price || !categoryId || !sellerId) {
       return res.status(400).json({
         success: false,
         message: "Preenche os campos obrigatórios do produto.",
       });
     }
 
-    const stockInicial = Math.max(0, Number(stock) || 0);
+    const preco = Number(price);
 
-    const data = await Product.create({
-      name,
-      description,
-      price: Number(price),
-      size: size || "Único",
-      color: color || "Única",
-      brand,
-      stock: stockInicial,
-      condition,
-      image,
-      categoryId,
-      sellerId,
-    });
-
-    if (Array.isArray(variants) && variants.length > 0) {
-      for (const variant of variants) {
-        if (variant.size && variant.color) {
-          await ProductVariant.create({
-            productId: data.id,
-            size: variant.size,
-            color: variant.color,
-            stock: Math.max(0, Number(variant.stock) || 0),
-          });
-        }
-      }
-    } else {
-      await ProductVariant.create({
-        productId: data.id,
-        size: size || "Único",
-        color: color || "Única",
-        stock: stockInicial,
+    if (!Number.isFinite(preco) || preco <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Indica um preço válido superior a 0.",
       });
     }
 
-    const stockTotal = await ProductVariant.sum("stock", {
-      where: { productId: data.id },
+    const variantesPreparadas = prepararVariantes(variants, {
+      size,
+      color,
+      stock,
     });
 
-    await data.update({
-      stock: Number(stockTotal || 0),
-    });
+    const primeiraVariante = variantesPreparadas[0];
+    const stockTotal = variantesPreparadas.reduce(
+      (total, variant) => total + variant.stock,
+      0
+    );
 
-    const produtoCriado = await Product.findByPk(data.id, {
+    transaction = await sequelize.transaction();
+
+    const vendedor = await User.findByPk(Number(sellerId), { transaction });
+
+    if (!vendedor || vendedor.role !== "vendedor") {
+      throw criarErro(403, "A conta indicada não é um vendedor válido.");
+    }
+
+    const produto = await Product.create(
+      {
+        name: String(name).trim(),
+        description: String(description).trim(),
+        price: preco,
+        size: primeiraVariante.size,
+        color: primeiraVariante.color,
+        brand: brand ? String(brand).trim() : null,
+        stock: stockTotal,
+        condition,
+        image,
+        categoryId: Number(categoryId),
+        sellerId: Number(sellerId),
+      },
+      { transaction }
+    );
+
+    await ProductVariant.bulkCreate(
+      variantesPreparadas.map((variant) => ({
+        productId: produto.id,
+        size: variant.size,
+        color: variant.color,
+        stock: variant.stock,
+      })),
+      { transaction }
+    );
+
+    await transaction.commit();
+    transaction = null;
+
+    const produtoCriado = await Product.findByPk(produto.id, {
       include: includeProduto,
     });
 
@@ -140,10 +238,14 @@ controllers.criar = async (req, res) => {
       data: produtoCriado,
     });
   } catch (error) {
-    res.status(500).json({
+    if (transaction && !transaction.finished) {
+      await transaction.rollback();
+    }
+
+    res.status(error.status || 500).json({
       success: false,
-      message: "Erro ao criar produto.",
-      error: error.message,
+      message: error.status ? error.message : "Erro ao criar produto.",
+      error: error.status ? undefined : error.message,
     });
   }
 };
@@ -177,86 +279,155 @@ controllers.obter = async (req, res) => {
   }
 };
 
-/* Atualizar produto */
+/* Atualizar produto e respetivas variantes */
 controllers.atualizar = async (req, res) => {
+  let transaction = null;
+
   try {
     const { id } = req.params;
-    const { variants, ...dadosProduto } = req.body;
+    const {
+      variants,
+      sellerId,
+      name,
+      description,
+      price,
+      brand,
+      condition,
+      image,
+      categoryId,
+      size,
+      color,
+      stock,
+    } = req.body;
 
-    const produto = await Product.findByPk(id);
+    transaction = await sequelize.transaction();
+
+    const produto = await Product.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
 
     if (!produto) {
-      return res.status(404).json({
-        success: false,
-        message: "Produto não encontrado.",
-      });
+      throw criarErro(404, "Produto não encontrado.");
     }
 
-    if (dadosProduto.price !== undefined) {
-      dadosProduto.price = Number(dadosProduto.price);
+    if (
+      sellerId &&
+      produto.sellerId &&
+      Number(produto.sellerId) !== Number(sellerId)
+    ) {
+      throw criarErro(403, "Não tens autorização para editar este produto.");
     }
 
-    if (dadosProduto.categoryId !== undefined) {
-      dadosProduto.categoryId = Number(dadosProduto.categoryId);
+    const preco = Number(price);
+
+    if (!Number.isFinite(preco) || preco <= 0) {
+      throw criarErro(400, "Indica um preço válido superior a 0.");
     }
 
-    await produto.update(dadosProduto);
+    const variantesPreparadas = prepararVariantes(variants, {
+      size,
+      color,
+      stock,
+    });
 
     const variantesAtuais = await ProductVariant.findAll({
       where: { productId: produto.id },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
       order: [["id", "ASC"]],
     });
 
-    if (Array.isArray(variants) && variants.length > 0) {
-      for (const variant of variants) {
-        if (variant.id) {
-          const varianteExistente = await ProductVariant.findOne({
-            where: {
-              id: variant.id,
-              productId: produto.id,
-            },
-          });
+    const idsRecebidos = variantesPreparadas
+      .filter((variant) => variant.id)
+      .map((variant) => variant.id);
 
-          if (varianteExistente) {
-            await varianteExistente.update({
-              size: variant.size,
-              color: variant.color,
-              stock: Math.max(0, Number(variant.stock) || 0),
-            });
-          }
-        } else if (variant.size && variant.color) {
-          await ProductVariant.create({
+    for (const variant of variantesPreparadas) {
+      if (variant.id) {
+        const varianteExistente = variantesAtuais.find(
+          (opcao) => Number(opcao.id) === Number(variant.id)
+        );
+
+        if (!varianteExistente) {
+          throw criarErro(
+            400,
+            "Foi enviada uma opção que não pertence a este produto."
+          );
+        }
+
+        await varianteExistente.update(
+          {
+            size: variant.size,
+            color: variant.color,
+            stock: variant.stock,
+          },
+          { transaction }
+        );
+      } else {
+        await ProductVariant.create(
+          {
             productId: produto.id,
             size: variant.size,
             color: variant.color,
-            stock: Math.max(0, Number(variant.stock) || 0),
-          });
-        }
-      }
-    } else if (variantesAtuais.length <= 1) {
-      const dadosVariante = {
-        size: dadosProduto.size || produto.size || "Único",
-        color: dadosProduto.color || produto.color || "Única",
-        stock: Math.max(0, Number(dadosProduto.stock) || 0),
-      };
-
-      if (variantesAtuais.length === 1) {
-        await variantesAtuais[0].update(dadosVariante);
-      } else {
-        await ProductVariant.create({
-          productId: produto.id,
-          ...dadosVariante,
-        });
+            stock: variant.stock,
+          },
+          { transaction }
+        );
       }
     }
 
-    const stockTotal = await ProductVariant.sum("stock", {
+    const variantesRemovidas = variantesAtuais.filter(
+      (variant) => !idsRecebidos.includes(Number(variant.id))
+    );
+
+    for (const variant of variantesRemovidas) {
+      const totalEmEncomendas = await OrderItem.count({
+        where: { productVariantId: variant.id },
+        transaction,
+      });
+
+      if (totalEmEncomendas > 0) {
+        await variant.update({ stock: 0 }, { transaction });
+      } else {
+        await variant.destroy({ transaction });
+      }
+    }
+
+    const variantesFinais = await ProductVariant.findAll({
       where: { productId: produto.id },
+      transaction,
+      order: [["id", "ASC"]],
     });
 
-    await produto.update({
-      stock: Number(stockTotal || 0),
-    });
+    if (variantesFinais.length === 0) {
+      throw criarErro(400, "O produto deve ter pelo menos uma opção.");
+    }
+
+    const stockTotal = variantesFinais.reduce(
+      (total, variant) => total + Number(variant.stock || 0),
+      0
+    );
+
+    const primeiraVariante = variantesFinais[0];
+
+    await produto.update(
+      {
+        name: String(name || produto.name).trim(),
+        description: String(description || produto.description).trim(),
+        price: preco,
+        brand: brand ? String(brand).trim() : null,
+        condition,
+        image,
+        categoryId: Number(categoryId),
+        size: primeiraVariante.size,
+        color: primeiraVariante.color,
+        stock: stockTotal,
+      },
+      { transaction }
+    );
+
+    await transaction.commit();
+    transaction = null;
 
     const produtoAtualizado = await Product.findByPk(produto.id, {
       include: includeProduto,
@@ -264,14 +435,20 @@ controllers.atualizar = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Produto atualizado com sucesso.",
+      message: "Produto e opções atualizados com sucesso.",
       data: produtoAtualizado,
     });
   } catch (error) {
-    res.status(500).json({
+    if (transaction && !transaction.finished) {
+      await transaction.rollback();
+    }
+
+    res.status(error.status || 500).json({
       success: false,
-      message: "Erro ao atualizar produto.",
-      error: error.message,
+      message: error.status
+        ? error.message
+        : "Erro ao atualizar produto.",
+      error: error.status ? undefined : error.message,
     });
   }
 };

@@ -2,22 +2,17 @@
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import { obterUtilizador } from "../../utils/authUtils";
-
-function calcularStockTotal(produto) {
-  const variantes = produto.productVariants || [];
-
-  if (variantes.length > 0) {
-    return variantes.reduce(
-      (total, variante) => total + Number(variante.stock || 0),
-      0
-    );
-  }
-
-  return Number(produto.stock || 0);
-}
+import {
+  calcularStockTotal,
+  contarVariantesEsgotadas,
+  obterResumoVariantes,
+  obterVariantes,
+} from "../../utils/produtoUtils";
 
 function mostrarEstadoStock(produto) {
   const stockTotal = calcularStockTotal(produto);
+  const variantesEsgotadas = contarVariantesEsgotadas(produto);
+  const totalVariantes = obterVariantes(produto).length;
 
   if (stockTotal <= 0) {
     return <span className="badge bg-danger">Esgotado</span>;
@@ -31,7 +26,16 @@ function mostrarEstadoStock(produto) {
     );
   }
 
-  return <span className="badge bg-success">Stock: {stockTotal}</span>;
+  return (
+    <div>
+      <span className="badge bg-success">Stock: {stockTotal}</span>
+      {variantesEsgotadas > 0 && totalVariantes > 1 && (
+        <div className="text-danger small mt-1">
+          {variantesEsgotadas} opção(ões) esgotada(s)
+        </div>
+      )}
+    </div>
+  );
 }
 
 function DashboardVendedor() {
@@ -71,17 +75,17 @@ function DashboardVendedor() {
           return;
         }
 
-        if (respostaProdutos.data.success) {
-          setProdutos(respostaProdutos.data.data || []);
-        } else {
-          setProdutos([]);
-        }
+        setProdutos(
+          respostaProdutos.data?.success
+            ? respostaProdutos.data.data || []
+            : []
+        );
 
-        if (respostaEncomendas.data.success) {
-          setEncomendas(respostaEncomendas.data.data || []);
-        } else {
-          setEncomendas([]);
-        }
+        setEncomendas(
+          respostaEncomendas.data?.success
+            ? respostaEncomendas.data.data || []
+            : []
+        );
       })
       .catch(() => {
         if (componenteAtivo) {
@@ -111,7 +115,7 @@ function DashboardVendedor() {
     api
       .delete(`/produtos/apagar/${id}`)
       .then((response) => {
-        if (response.data.success) {
+        if (response.data?.success) {
           setProdutos((produtosAtuais) =>
             produtosAtuais.filter((produto) => produto.id !== id)
           );
@@ -120,11 +124,7 @@ function DashboardVendedor() {
         }
       })
       .catch((error) => {
-        if (error.response?.data?.message) {
-          alert(error.response.data.message);
-        } else {
-          alert("Erro ao ligar ao servidor.");
-        }
+        alert(error.response?.data?.message || "Erro ao ligar ao servidor.");
       });
   }
 
@@ -136,6 +136,11 @@ function DashboardVendedor() {
     (produto) => calcularStockTotal(produto) <= 0
   ).length;
 
+  const variantesEsgotadas = produtos.reduce(
+    (total, produto) => total + contarVariantesEsgotadas(produto),
+    0
+  );
+
   const pedidosPendentes = encomendas.filter(
     (encomenda) => encomenda.status === "Pendente"
   ).length;
@@ -143,25 +148,27 @@ function DashboardVendedor() {
   const totalVendas = encomendas.reduce((total, encomenda) => {
     const itens = encomenda.orderItems || [];
 
-    const quantidadeDaEncomenda = itens.reduce(
-      (subtotal, item) => subtotal + Number(item.quantity || 0),
-      0
+    return (
+      total +
+      itens.reduce(
+        (subtotal, item) => subtotal + Number(item.quantity || 0),
+        0
+      )
     );
-
-    return total + quantidadeDaEncomenda;
   }, 0);
 
   const totalRecebido = encomendas.reduce((total, encomenda) => {
     const itens = encomenda.orderItems || [];
 
-    const valorDaEncomenda = itens.reduce((subtotal, item) => {
-      const quantidade = Number(item.quantity || 0);
-      const preco = Number(item.price || 0);
-
-      return subtotal + quantidade * preco;
-    }, 0);
-
-    return total + valorDaEncomenda;
+    return (
+      total +
+      itens.reduce(
+        (subtotal, item) =>
+          subtotal +
+          Number(item.quantity || 0) * Number(item.price || 0),
+        0
+      )
+    );
   }, 0);
 
   return (
@@ -169,7 +176,6 @@ function DashboardVendedor() {
       <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
         <div>
           <h1 className="fw-bold mb-2">Dashboard do Vendedor</h1>
-
           <p className="text-muted mb-0">
             Bem-vindo de volta, {nomePublicoVendedor}! Aqui está um resumo da
             tua atividade.
@@ -204,6 +210,11 @@ function DashboardVendedor() {
           <div className="card h-100 border-0 shadow-sm p-4">
             <p className="mb-1 text-muted">Produtos Esgotados</p>
             <h3 className="mb-0 text-danger">{produtosEsgotados}</h3>
+            {variantesEsgotadas > produtosEsgotados && (
+              <small className="text-muted">
+                {variantesEsgotadas} opções sem stock no total
+              </small>
+            )}
           </div>
         </div>
 
@@ -244,11 +255,11 @@ function DashboardVendedor() {
               <thead>
                 <tr>
                   <th>Imagem</th>
-                  <th>Nome</th>
+                  <th>Produto</th>
                   <th>Categoria</th>
+                  <th>Opções</th>
                   <th>Preço</th>
                   <th>Stock</th>
-                  <th>Estado</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -282,15 +293,22 @@ function DashboardVendedor() {
 
                       <td>
                         <span className="fw-semibold">{produto.name}</span>
+                        <div className="text-muted small">
+                          {produto.brand || "Sem marca"}
+                        </div>
                       </td>
 
                       <td>{produto.category?.name || "Sem categoria"}</td>
 
+                      <td>
+                        <span className="small">
+                          {obterResumoVariantes(produto)}
+                        </span>
+                      </td>
+
                       <td>{Number(produto.price).toFixed(2)} €</td>
 
                       <td>{mostrarEstadoStock(produto)}</td>
-
-                      <td>{produto.condition}</td>
 
                       <td>
                         <div className="d-flex flex-wrap gap-2">
