@@ -29,17 +29,26 @@ controllers.registar = async (req, res) => {
       });
     }
 
-    const roleFinal = role === "vendedor" ? "vendedor" : "comprador";
+    const roleFinal =
+      role === "vendedor" ? "vendedor" : "comprador";
 
-    if (roleFinal === "vendedor" && !storeName) {
+    if (
+      roleFinal === "vendedor" &&
+      (!storeName || !storeName.trim())
+    ) {
       return res.status(400).json({
         success: false,
-        message: "O nome da loja é obrigatório para vendedores.",
+        message:
+          "O nome público do vendedor ou da loja é obrigatório.",
       });
     }
 
+    const emailNormalizado = email.trim().toLowerCase();
+
     const emailExistente = await User.findOne({
-      where: { email: email },
+      where: {
+        email: emailNormalizado,
+      },
     });
 
     if (emailExistente) {
@@ -50,13 +59,20 @@ controllers.registar = async (req, res) => {
     }
 
     const user = await User.create({
-      name,
-      email,
+      name: name.trim(),
+      email: emailNormalizado,
       password,
       role: roleFinal,
-      storeName: roleFinal === "vendedor" ? storeName : null,
-      storeDescription: roleFinal === "vendedor" ? storeDescription : null,
-      storeContact: roleFinal === "vendedor" ? storeContact : null,
+      storeName:
+        roleFinal === "vendedor" ? storeName.trim() : null,
+      storeDescription:
+        roleFinal === "vendedor"
+          ? storeDescription?.trim() || null
+          : null,
+      storeContact:
+        roleFinal === "vendedor"
+          ? storeContact?.trim() || null
+          : null,
     });
 
     res.status(201).json({
@@ -81,7 +97,7 @@ controllers.registar = async (req, res) => {
   }
 };
 
-/* Login único para comprador, vendedor e administrador */
+/* Login único */
 controllers.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -93,8 +109,12 @@ controllers.login = async (req, res) => {
       });
     }
 
+    const emailNormalizado = email.trim().toLowerCase();
+
     const user = await User.findOne({
-      where: { email: email },
+      where: {
+        email: emailNormalizado,
+      },
     });
 
     if (!user) {

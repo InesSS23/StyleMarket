@@ -29,8 +29,8 @@ function Registo() {
       return;
     }
 
-    if (pretendeVender && !storeName) {
-      setErro("Indica o nome da loja para criar conta de vendedor.");
+    if (pretendeVender && !storeName.trim()) {
+      setErro("Indica o nome público do vendedor ou da loja.");
       return;
     }
 
@@ -170,11 +170,10 @@ function Registo() {
 
             <input
               type="password"
-              className={`form-control ${
-                confirmarPassword && password !== confirmarPassword
+              className={`form-control ${confirmarPassword && password !== confirmarPassword
                   ? "is-invalid"
                   : ""
-              }`}
+                }`}
               placeholder="••••••••"
               value={confirmarPassword}
               onChange={(event) => setConfirmarPassword(event.target.value)}
@@ -206,31 +205,44 @@ function Registo() {
           {pretendeVender && (
             <div className="card bg-light border-0 mb-4">
               <div className="card-body">
-                <h6 className="fw-bold mb-3">Informações da loja</h6>
+                <h6 className="fw-bold mb-2">
+                  Informações do vendedor
+                </h6>
+
+                <p className="text-muted small mb-3">
+                  Podes vender em nome próprio ou através de uma loja.
+                  Este será o nome apresentado publicamente nos teus produtos.
+                </p>
 
                 <div className="mb-3">
                   <label className="form-label small fw-semibold">
-                    Nome da loja
+                    Nome do vendedor / Nome da loja
                   </label>
 
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="Ex: Maria Store"
+                    placeholder="Ex.: Maria Santos ou Maria Store"
                     value={storeName}
                     onChange={(event) => setStoreName(event.target.value)}
+                    required={pretendeVender}
                   />
+
+                  <div className="form-text">
+                    Escreve o teu nome caso vendas como pessoa individual ou o
+                    nome comercial caso representes uma loja.
+                  </div>
                 </div>
 
                 <div className="mb-3">
                   <label className="form-label small fw-semibold">
-                    Descrição da loja
+                    Descrição do vendedor / loja
                   </label>
 
                   <textarea
                     className="form-control"
                     rows="3"
-                    placeholder="Breve descrição da tua loja"
+                    placeholder="Breve descrição sobre ti, os produtos que vendes ou a tua loja"
                     value={storeDescription}
                     onChange={(event) =>
                       setStoreDescription(event.target.value)
@@ -240,7 +252,7 @@ function Registo() {
 
                 <div>
                   <label className="form-label small fw-semibold">
-                    Contacto da loja
+                    Contacto do vendedor / loja
                   </label>
 
                   <input

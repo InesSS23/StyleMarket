@@ -1,6 +1,11 @@
-export const SELLER_ID_KEY = "sellerId";
+import { obterUtilizador } from "../utils/authUtils";
 
 export function getSellerId() {
-  const storedId = localStorage.getItem(SELLER_ID_KEY);
-  return storedId ? Number(storedId) : 1;
+  const utilizador = obterUtilizador();
+
+  if (!utilizador || utilizador.role !== "vendedor") {
+    return null;
+  }
+
+  return Number(utilizador.id);
 }

@@ -5,35 +5,33 @@ import ProductCard from "../../components/ProductCard";
 
 function Home() {
   const [produtos, setProdutos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [erro, setErro] = useState("");
 
-  const categorias = [
-    "T-shirts",
-    "Casacos",
-    "Calças",
-    "Vestidos",
-    "Sapatilhas",
-    "Acessórios",
-  ];
-
   useEffect(() => {
-    api
-      .get("/produtos/listar")
-      .then((response) => {
-        if (response.data.success) {
-          setProdutos(response.data.data);
-        } else {
-          setErro("Não foi possível carregar os produtos em destaque.");
+    Promise.all([
+      api.get("/produtos/listar"),
+      api.get("/categorias/listar"),
+    ])
+      .then(([respostaProdutos, respostaCategorias]) => {
+        if (respostaProdutos.data.success) {
+          setProdutos(respostaProdutos.data.data);
+        }
+
+        if (respostaCategorias.data.success) {
+          setCategorias(respostaCategorias.data.data);
         }
       })
       .catch(() => {
-        setErro("Erro ao ligar ao servidor.");
+        setErro("Erro ao carregar os dados da página inicial.");
       });
   }, []);
 
-  function contarProdutosPorCategoria(categoria) {
+  function contarProdutosPorCategoria(categoriaId) {
     return produtos.filter(
-      (produto) => produto.category && produto.category.name === categoria
+      (produto) =>
+        produto.categoryId === categoriaId ||
+        produto.category?.id === categoriaId
     ).length;
   }
 
@@ -59,7 +57,10 @@ function Home() {
                   Ver Catálogo
                 </Link>
 
-                <Link to="/registo" className="btn btn-outline-light btn-lg px-5">
+                <Link
+                  to="/registo"
+                  className="btn btn-outline-light btn-lg px-5"
+                >
                   Começar a Vender
                 </Link>
               </div>
@@ -77,8 +78,8 @@ function Home() {
           <div className="row g-4">
             <div className="col-md-4">
               <div className="home-feature-card text-center h-100">
-                <div className="home-feature-icon mx-auto mb-3">01</div>
-                <h5 className="fw-bold">Fácil de usar</h5>
+                <h5 className="fw-bold mb-3">Fácil de usar</h5>
+
                 <p className="text-muted mb-0">
                   Interface simples para consultar produtos, comparar opções e
                   comprar com poucos passos.
@@ -88,8 +89,8 @@ function Home() {
 
             <div className="col-md-4">
               <div className="home-feature-card text-center h-100">
-                <div className="home-feature-icon mx-auto mb-3">02</div>
-                <h5 className="fw-bold">Compra organizada</h5>
+                <h5 className="fw-bold mb-3">Compra organizada</h5>
+
                 <p className="text-muted mb-0">
                   Carrinho, detalhes dos produtos e finalização de compra numa
                   experiência clara.
@@ -99,8 +100,8 @@ function Home() {
 
             <div className="col-md-4">
               <div className="home-feature-card text-center h-100">
-                <div className="home-feature-icon mx-auto mb-3">03</div>
-                <h5 className="fw-bold">Vende mais</h5>
+                <h5 className="fw-bold mb-3">Vende mais</h5>
+
                 <p className="text-muted mb-0">
                   Os vendedores podem divulgar roupas e gerir os seus produtos
                   numa área própria.
@@ -113,28 +114,36 @@ function Home() {
 
       <section className="py-5 bg-light">
         <div className="container py-3">
-          <h2 className="text-center fw-bold mb-5">Categorias Populares</h2>
+          <h2 className="text-center fw-bold mb-5">Categorias</h2>
 
-          <div className="row g-3">
+          {categorias.length === 0 && !erro && (
+            <div className="alert alert-info text-center">
+              Ainda não existem categorias disponíveis.
+            </div>
+          )}
+
+          <div className="home-categories-scroll d-flex flex-nowrap gap-3 overflow-auto pb-3">
             {categorias.map((categoria) => (
-              <div className="col-6 col-md-4 col-lg-2" key={categoria}>
-                <Link
-                  to={`/catalogo?categoria=${categoria}`}
-                  className="home-category-card card h-100 text-center text-decoration-none"
-                >
-                  <div className="card-body">
-                    <div className="home-category-letter mx-auto mb-3">
-                      {categoria.charAt(0)}
-                    </div>
+              <Link
+                to={`/catalogo?categoria=${encodeURIComponent(
+                  categoria.name
+                )}`}
+                className="home-category-card card flex-shrink-0 text-center text-decoration-none"
+                key={categoria.id}
+              >
+                <div className="card-body d-flex flex-column justify-content-center">
+                  <h6 className="fw-bold text-dark mb-2">
+                    {categoria.name}
+                  </h6>
 
-                    <h6 className="fw-bold text-dark mb-1">{categoria}</h6>
-
-                    <p className="text-muted small mb-0">
-                      {contarProdutosPorCategoria(categoria)} produtos
-                    </p>
-                  </div>
-                </Link>
-              </div>
+                  <p className="text-muted small mb-0">
+                    {contarProdutosPorCategoria(categoria.id)}{" "}
+                    {contarProdutosPorCategoria(categoria.id) === 1
+                      ? "produto"
+                      : "produtos"}
+                  </p>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -145,6 +154,7 @@ function Home() {
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
             <div>
               <h2 className="fw-bold mb-1">Produtos em Destaque</h2>
+
               <p className="text-muted mb-0">
                 Algumas peças disponíveis na plataforma.
               </p>
@@ -178,6 +188,7 @@ function Home() {
           <div className="row align-items-center g-4">
             <div className="col-lg-8">
               <h2 className="fw-bold mb-2">Tens roupas para vender?</h2>
+
               <p className="text-muted mb-lg-0">
                 Cria uma conta, escolhe a opção de vendedor no registo e começa
                 a publicar os teus produtos na StyleMarket.
