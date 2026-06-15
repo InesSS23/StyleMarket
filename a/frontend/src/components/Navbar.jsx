@@ -1,25 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
-import {
-  obterUtilizador,
-  terminarSessao,
-} from "../utils/authUtils";
-import {
-  limparCarrinhoVisitante,
-} from "../utils/carrinhoUtils";
+import { obterUtilizador, terminarSessao } from "../utils/authUtils";
 
 function Navbar() {
   const navigate = useNavigate();
   const utilizador = obterUtilizador();
 
   function handleLogout() {
-    /*
-      O carrinho da conta do comprador permanece guardado.
-      O carrinho do visitante fica sempre vazio após logout.
-    */
-    limparCarrinhoVisitante();
     terminarSessao();
-
-    navigate("/", { replace: true });
+    navigate("/");
     window.location.reload();
   }
 
@@ -42,10 +30,7 @@ function Navbar() {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        <div
-          className="collapse navbar-collapse"
-          id="menuPrincipal"
-        >
+        <div className="collapse navbar-collapse" id="menuPrincipal">
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
             <li className="nav-item">
               <Link className="nav-link" to="/">
@@ -59,19 +44,15 @@ function Navbar() {
               </Link>
             </li>
 
-            {(!utilizador ||
-              utilizador.role === "comprador") && (
+            {(!utilizador || utilizador.role === "comprador") && (
               <li className="nav-item">
-                <Link
-                  className="nav-link"
-                  to="/carrinho"
-                >
+                <Link className="nav-link" to="/carrinho">
                   Carrinho
                 </Link>
               </li>
             )}
 
-            {utilizador?.role === "vendedor" && (
+            {utilizador && utilizador.role === "vendedor" && (
               <li className="nav-item">
                 <Link
                   className="nav-link fw-semibold"
@@ -82,12 +63,9 @@ function Navbar() {
               </li>
             )}
 
-            {utilizador?.role === "admin" && (
+            {utilizador && utilizador.role === "admin" && (
               <li className="nav-item">
-                <Link
-                  className="nav-link fw-semibold"
-                  to="/admin/dashboard"
-                >
+                <Link className="nav-link fw-semibold" to="/admin/dashboard">
                   Painel Admin
                 </Link>
               </li>
@@ -108,19 +86,13 @@ function Navbar() {
             {!utilizador && (
               <>
                 <li className="nav-item ms-lg-2">
-                  <Link
-                    className="btn btn-outline-dark"
-                    to="/login"
-                  >
+                  <Link className="btn btn-outline-dark" to="/login">
                     Entrar
                   </Link>
                 </li>
 
                 <li className="nav-item ms-lg-2">
-                  <Link
-                    className="btn btn-primary"
-                    to="/registo"
-                  >
+                  <Link className="btn btn-primary" to="/registo">
                     Registar
                   </Link>
                 </li>
