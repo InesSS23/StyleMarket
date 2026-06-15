@@ -1,6 +1,5 @@
 /*
   Estilos gerais da aplicação.
-  O Bootstrap será usado para a maior parte da interface.
 */
 
 body {
@@ -591,4 +590,17 @@ a {
   .catalog-filter-card {
     position: static;
   }
+}
+/* Estados de stock */
+.product-card-esgotado {
+  opacity: 0.82;
+}
+
+.produto-imagem-esgotado {
+  filter: grayscale(75%);
+  opacity: 0.72;
+}
+
+.cart-item-indisponivel {
+  background-color: #d7dadd;
 }

@@ -140,8 +140,11 @@ function FinalizarCompra() {
           setErro("Não foi possível confirmar a encomenda.");
         }
       })
-      .catch(() => {
-        setErro("Erro ao ligar ao servidor.");
+      .catch((error) => {
+        setErro(
+          error.response?.data?.message ||
+            "Erro ao ligar ao servidor."
+        );
       })
       .finally(() => {
         setLoading(false);

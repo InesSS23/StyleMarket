@@ -68,6 +68,16 @@ function DetalhesProduto() {
 
   const variantes = produto.productVariants || [];
 
+  const stockTotal =
+    variantes.length > 0
+      ? variantes.reduce(
+          (total, variante) => total + Number(variante.stock || 0),
+          0
+        )
+      : Number(produto.stock || 0);
+
+  const produtoEsgotado = stockTotal <= 0;
+
   const coresDisponiveis = [
     ...new Set(variantes.map((variant) => variant.color)),
   ];
@@ -81,7 +91,13 @@ function DetalhesProduto() {
       variant.color === corSelecionada && variant.size === tamanhoSelecionado
   );
 
-  const temStock = varianteSelecionada && varianteSelecionada.stock > 0;
+  const temStockNaVariante =
+    varianteSelecionada && Number(varianteSelecionada.stock) > 0;
+
+  const podeAdicionar =
+    variantes.length > 0
+      ? Boolean(temStockNaVariante)
+      : Number(produto.stock || 0) > 0;
 
   function handleAdicionarCarrinho() {
     if (variantes.length > 0 && !varianteSelecionada) {
@@ -89,13 +105,8 @@ function DetalhesProduto() {
       return;
     }
 
-    if (variantes.length > 0 && !temStock) {
-      alert("Esta opção está esgotada.");
-      return;
-    }
-
-    adicionarAoCarrinho(produto, varianteSelecionada);
-    alert("Produto adicionado ao carrinho.");
+    const resultado = adicionarAoCarrinho(produto, varianteSelecionada);
+    alert(resultado.message);
   }
 
   return (
@@ -105,12 +116,20 @@ function DetalhesProduto() {
       </Link>
 
       <div className="row g-5">
-        <div className="col-md-6">
+        <div className="col-md-6 position-relative">
           <img
             src={produto.image || "/images/produtos/sem-imagem.jpg"}
             alt={produto.name}
-            className="img-fluid rounded shadow-sm detalhe-produto-imagem"
+            className={`img-fluid rounded shadow-sm detalhe-produto-imagem ${
+              produtoEsgotado ? "produto-imagem-esgotado" : ""
+            }`}
           />
+
+          {produtoEsgotado && (
+            <span className="badge bg-danger position-absolute top-0 end-0 m-3 fs-6">
+              Esgotado
+            </span>
+          )}
         </div>
 
         <div className="col-md-6">
@@ -126,37 +145,54 @@ function DetalhesProduto() {
             {Number(produto.price).toFixed(2)} €
           </h2>
 
-          {variantes.length > 0 && (
+          {produtoEsgotado && (
+            <div className="alert alert-danger">
+              Este produto está esgotado e já não pode ser adicionado ao
+              carrinho.
+            </div>
+          )}
+
+          {variantes.length > 0 && !produtoEsgotado && (
             <div className="mb-4">
               <h5 className="fw-bold mb-3">Escolhe a cor</h5>
 
               <div className="d-flex flex-wrap gap-2 mb-4">
-                {coresDisponiveis.map((cor) => (
-                  <button
-                    type="button"
-                    className={
-                      corSelecionada === cor
-                        ? "btn btn-primary"
-                        : "btn btn-outline-primary"
-                    }
-                    key={cor}
-                    onClick={() => {
-                      setCorSelecionada(cor);
+                {coresDisponiveis.map((cor) => {
+                  const corTemStock = variantes.some(
+                    (variant) =>
+                      variant.color === cor && Number(variant.stock) > 0
+                  );
 
-                      const primeiraDaCor = variantes.find(
-                        (variant) => variant.color === cor && variant.stock > 0
-                      );
-
-                      if (primeiraDaCor) {
-                        setTamanhoSelecionado(primeiraDaCor.size);
-                      } else {
-                        setTamanhoSelecionado("");
+                  return (
+                    <button
+                      type="button"
+                      className={
+                        corSelecionada === cor
+                          ? "btn btn-primary"
+                          : "btn btn-outline-primary"
                       }
-                    }}
-                  >
-                    {cor}
-                  </button>
-                ))}
+                      key={cor}
+                      disabled={!corTemStock}
+                      onClick={() => {
+                        setCorSelecionada(cor);
+
+                        const primeiraDaCor = variantes.find(
+                          (variant) =>
+                            variant.color === cor && Number(variant.stock) > 0
+                        );
+
+                        if (primeiraDaCor) {
+                          setTamanhoSelecionado(primeiraDaCor.size);
+                        } else {
+                          setTamanhoSelecionado("");
+                        }
+                      }}
+                    >
+                      {cor}
+                      {!corTemStock && " - Esgotada"}
+                    </button>
+                  );
+                })}
               </div>
 
               <h5 className="fw-bold mb-3">Escolhe o tamanho</h5>
@@ -171,11 +207,11 @@ function DetalhesProduto() {
                         : "btn btn-outline-dark"
                     }
                     key={variant.id}
-                    disabled={variant.stock <= 0}
+                    disabled={Number(variant.stock) <= 0}
                     onClick={() => setTamanhoSelecionado(variant.size)}
                   >
                     {variant.size}
-                    {variant.stock <= 0 && " - Esgotado"}
+                    {Number(variant.stock) <= 0 && " - Esgotado"}
                   </button>
                 ))}
               </div>
@@ -209,11 +245,9 @@ function DetalhesProduto() {
             <button
               className="btn btn-primary btn-lg w-100"
               onClick={handleAdicionarCarrinho}
-              disabled={variantes.length > 0 && !temStock}
+              disabled={!podeAdicionar}
             >
-              {temStock || variantes.length === 0
-                ? "Adicionar ao carrinho"
-                : "Produto esgotado"}
+              {podeAdicionar ? "Adicionar ao carrinho" : "Produto esgotado"}
             </button>
           ) : (
             <div className="alert alert-secondary mb-0">

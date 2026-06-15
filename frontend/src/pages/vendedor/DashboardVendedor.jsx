@@ -3,9 +3,39 @@ import { Link } from "react-router-dom";
 import api from "../../services/api";
 import { obterUtilizador } from "../../utils/authUtils";
 
+function calcularStockTotal(produto) {
+  const variantes = produto.productVariants || [];
+
+  if (variantes.length > 0) {
+    return variantes.reduce(
+      (total, variante) => total + Number(variante.stock || 0),
+      0
+    );
+  }
+
+  return Number(produto.stock || 0);
+}
+
+function mostrarEstadoStock(produto) {
+  const stockTotal = calcularStockTotal(produto);
+
+  if (stockTotal <= 0) {
+    return <span className="badge bg-danger">Esgotado</span>;
+  }
+
+  if (stockTotal <= 2) {
+    return (
+      <span className="badge bg-warning text-dark">
+        Stock baixo: {stockTotal}
+      </span>
+    );
+  }
+
+  return <span className="badge bg-success">Stock: {stockTotal}</span>;
+}
+
 function DashboardVendedor() {
   const utilizador = obterUtilizador();
-
   const sellerId = utilizador ? Number(utilizador.id) : null;
 
   const nomePublicoVendedor =
@@ -98,7 +128,13 @@ function DashboardVendedor() {
       });
   }
 
-  const produtosAtivos = produtos.length;
+  const produtosAtivos = produtos.filter(
+    (produto) => calcularStockTotal(produto) > 0
+  ).length;
+
+  const produtosEsgotados = produtos.filter(
+    (produto) => calcularStockTotal(produto) <= 0
+  ).length;
 
   const pedidosPendentes = encomendas.filter(
     (encomenda) => encomenda.status === "Pendente"
@@ -166,15 +202,15 @@ function DashboardVendedor() {
 
         <div className="col-sm-6 col-xl-3">
           <div className="card h-100 border-0 shadow-sm p-4">
-            <p className="mb-1 text-muted">Produtos Vendidos</p>
-            <h3 className="mb-0">{totalVendas}</h3>
+            <p className="mb-1 text-muted">Produtos Esgotados</p>
+            <h3 className="mb-0 text-danger">{produtosEsgotados}</h3>
           </div>
         </div>
 
         <div className="col-sm-6 col-xl-3">
           <div className="card h-100 border-0 shadow-sm p-4">
-            <p className="mb-1 text-muted">Total Recebido</p>
-            <h3 className="mb-0">{totalRecebido.toFixed(2)} €</h3>
+            <p className="mb-1 text-muted">Produtos Vendidos</p>
+            <h3 className="mb-0">{totalVendas}</h3>
           </div>
         </div>
 
@@ -183,6 +219,13 @@ function DashboardVendedor() {
             <p className="mb-1 text-muted">Encomendas Pendentes</p>
             <h3 className="mb-0">{pedidosPendentes}</h3>
           </div>
+        </div>
+      </div>
+
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-4">
+          <p className="mb-1 text-muted">Total Recebido</p>
+          <h3 className="mb-0">{totalRecebido.toFixed(2)} €</h3>
         </div>
       </div>
 
@@ -203,7 +246,6 @@ function DashboardVendedor() {
                   <th>Imagem</th>
                   <th>Nome</th>
                   <th>Categoria</th>
-                  <th>Tamanho</th>
                   <th>Preço</th>
                   <th>Stock</th>
                   <th>Estado</th>
@@ -212,62 +254,69 @@ function DashboardVendedor() {
               </thead>
 
               <tbody>
-                {produtos.slice(0, 5).map((produto) => (
-                  <tr key={produto.id}>
-                    <td>
-                      <img
-                        src={
-                          produto.image ||
-                          "/images/produtos/sem-imagem.jpg"
-                        }
-                        alt={produto.name}
-                        className="rounded border"
-                        style={{
-                          width: "70px",
-                          height: "70px",
-                          objectFit: "cover",
-                        }}
-                      />
-                    </td>
+                {produtos.slice(0, 5).map((produto) => {
+                  const stockTotal = calcularStockTotal(produto);
 
-                    <td>
-                      <span className="fw-semibold">{produto.name}</span>
-                    </td>
+                  return (
+                    <tr
+                      key={produto.id}
+                      className={stockTotal <= 0 ? "table-danger" : ""}
+                    >
+                      <td>
+                        <img
+                          src={
+                            produto.image ||
+                            "/images/produtos/sem-imagem.jpg"
+                          }
+                          alt={produto.name}
+                          className="rounded border"
+                          style={{
+                            width: "70px",
+                            height: "70px",
+                            objectFit: "cover",
+                            filter:
+                              stockTotal <= 0 ? "grayscale(80%)" : "none",
+                          }}
+                        />
+                      </td>
 
-                    <td>{produto.category?.name || "Sem categoria"}</td>
+                      <td>
+                        <span className="fw-semibold">{produto.name}</span>
+                      </td>
 
-                    <td>{produto.size || "—"}</td>
+                      <td>{produto.category?.name || "Sem categoria"}</td>
 
-                    <td>{Number(produto.price).toFixed(2)} €</td>
+                      <td>{Number(produto.price).toFixed(2)} €</td>
 
-                    <td>{produto.stock}</td>
+                      <td>{mostrarEstadoStock(produto)}</td>
 
-                    <td>{produto.condition}</td>
+                      <td>{produto.condition}</td>
 
-                    <td>
-                      <div className="d-flex flex-wrap gap-2">
-                        <Link
-                          className="btn btn-sm btn-outline-primary"
-                          to={`/vendedor/editar-produto/${produto.id}`}
-                        >
-                          Editar
-                        </Link>
+                      <td>
+                        <div className="d-flex flex-wrap gap-2">
+                          <Link
+                            className="btn btn-sm btn-outline-primary"
+                            to={`/vendedor/editar-produto/${produto.id}`}
+                          >
+                            Editar
+                          </Link>
 
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => apagarProduto(produto.id)}
-                        >
-                          Apagar
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => apagarProduto(produto.id)}
+                          >
+                            Apagar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
 
                 {!carregando && produtos.length === 0 && (
                   <tr>
-                    <td colSpan="8" className="text-center text-muted py-4">
+                    <td colSpan="7" className="text-center text-muted py-4">
                       Ainda não tens produtos publicados.
                     </td>
                   </tr>

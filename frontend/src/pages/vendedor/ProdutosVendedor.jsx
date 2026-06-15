@@ -3,6 +3,29 @@ import { Link } from "react-router-dom";
 import api from "../../services/api";
 import { getSellerId } from "../../services/seller";
 
+function calcularStockTotal(produto) {
+  const variantes = produto.productVariants || [];
+
+  if (variantes.length > 0) {
+    return variantes.reduce(
+      (total, variante) => total + Number(variante.stock || 0),
+      0
+    );
+  }
+
+  return Number(produto.stock || 0);
+}
+
+function obterTamanhos(produto) {
+  const variantes = produto.productVariants || [];
+
+  if (variantes.length === 0) {
+    return produto.size || "—";
+  }
+
+  return [...new Set(variantes.map((variante) => variante.size))].join(", ");
+}
+
 function ProdutosVendedor() {
   const [produtos, setProdutos] = useState([]);
   const [pesquisa, setPesquisa] = useState("");
@@ -38,22 +61,33 @@ function ProdutosVendedor() {
     return () => clearTimeout(timer);
   }, [carregarProdutos]);
 
-  const produtosFiltrados = produtos.filter(
-    (produto) =>
-      produto.name.toLowerCase().includes(pesquisa.toLowerCase()) &&
+  const produtosFiltrados = produtos.filter((produto) => {
+    const variantes = produto.productVariants || [];
 
-      (categoriaFiltro
-        ? produto.category?.name === categoriaFiltro
-        : true) &&
+    const correspondePesquisa =
+      produto.name.toLowerCase().includes(pesquisa.toLowerCase()) ||
+      (produto.brand || "").toLowerCase().includes(pesquisa.toLowerCase());
 
-      (tamanhoFiltro
-        ? produto.size === tamanhoFiltro
-        : true) &&
+    const correspondeCategoria = categoriaFiltro
+      ? produto.category?.name === categoriaFiltro
+      : true;
 
-      (estadoFiltro
-        ? produto.condition === estadoFiltro
-        : true)
-  );
+    const correspondeTamanho = tamanhoFiltro
+      ? produto.size === tamanhoFiltro ||
+        variantes.some((variante) => variante.size === tamanhoFiltro)
+      : true;
+
+    const correspondeEstado = estadoFiltro
+      ? produto.condition === estadoFiltro
+      : true;
+
+    return (
+      correspondePesquisa &&
+      correspondeCategoria &&
+      correspondeTamanho &&
+      correspondeEstado
+    );
+  });
 
   function apagarProduto(id) {
     if (!window.confirm("Tem a certeza que quer apagar este produto?")) {
@@ -74,6 +108,24 @@ function ProdutosVendedor() {
       });
   }
 
+  function mostrarEstadoStock(produto) {
+    const stockTotal = calcularStockTotal(produto);
+
+    if (stockTotal <= 0) {
+      return <span className="badge bg-danger">Esgotado</span>;
+    }
+
+    if (stockTotal <= 2) {
+      return (
+        <span className="badge bg-warning text-dark">
+          Stock baixo: {stockTotal}
+        </span>
+      );
+    }
+
+    return <span className="badge bg-success">Stock: {stockTotal}</span>;
+  }
+
   return (
     <div className="container py-5">
       <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
@@ -91,11 +143,8 @@ function ProdutosVendedor() {
           + Adicionar Produto
         </Link>
       </div>
-       
-      {/* FILTROS */}
-      <div className="mb-4 row g-2 align-items-center">
 
-        {/* Pesquisa */}
+      <div className="mb-4 row g-2 align-items-center">
         <div className="col-md-4">
           <input
             type="text"
@@ -104,31 +153,29 @@ function ProdutosVendedor() {
             value={pesquisa}
             onChange={(event) => setPesquisa(event.target.value)}
           />
-        </div> 
+        </div>
 
-        {/* Categoria */}
         <div className="col-md-2">
           <select
             className="form-select"
             value={categoriaFiltro}
-            onChange={(e) => setCategoriaFiltro(e.target.value)}
+            onChange={(event) => setCategoriaFiltro(event.target.value)}
           >
             <option value="">Todas as Categorias</option>
-            <option value="T-Shirts">T-Shirts</option>
+            <option value="T-shirts">T-shirts</option>
             <option value="Calças">Calças</option>
             <option value="Casacos">Casacos</option>
             <option value="Vestidos">Vestidos</option>
-            <option value="Saias">Saias</option>
+            <option value="Sapatilhas">Sapatilhas</option>
             <option value="Acessórios">Acessórios</option>
           </select>
         </div>
 
-        {/* Tamanho */}
         <div className="col-md-2">
           <select
             className="form-select"
             value={tamanhoFiltro}
-            onChange={(e) => setTamanhoFiltro(e.target.value)}
+            onChange={(event) => setTamanhoFiltro(event.target.value)}
           >
             <option value="">Todos os Tamanhos</option>
             <option value="XS">XS</option>
@@ -137,34 +184,25 @@ function ProdutosVendedor() {
             <option value="L">L</option>
             <option value="XL">XL</option>
             <option value="XXL">XXL</option>
-            <option value= "XXXL">XXXL</option>         </select>
+            <option value="XXXL">XXXL</option>
+          </select>
         </div>
 
-        {/* Estado */}
         <div className="col-md-2">
           <select
             className="form-select"
             value={estadoFiltro}
-            onChange={(e) => setEstadoFiltro(e.target.value)}
+            onChange={(event) => setEstadoFiltro(event.target.value)}
           >
             <option value="">Todos os Estados</option>
             <option value="Novo">Novo</option>
-            <option value="Usado - Como Novo">
-              Usado - Como Novo
-            </option>
-            <option value="Usado - Bom Estado">
-              Usado - Bom Estado
-            </option>
+            <option value="Usado - Como Novo">Usado - Como Novo</option>
+            <option value="Usado - Bom Estado">Usado - Bom Estado</option>
           </select>
         </div>
-
       </div>
 
-      {erro && (
-        <div className="alert alert-danger">
-          {erro}
-        </div>
-      )}
+      {erro && <div className="alert alert-danger">{erro}</div>}
 
       {!erro && !carregando && produtosFiltrados.length === 0 && (
         <div className="alert alert-info">
@@ -173,9 +211,7 @@ function ProdutosVendedor() {
       )}
 
       {carregando ? (
-        <div className="alert alert-secondary">
-          A carregar produtos...
-        </div>
+        <div className="alert alert-secondary">A carregar produtos...</div>
       ) : (
         <div className="table-responsive">
           <table className="table table-hover align-middle">
@@ -194,68 +230,77 @@ function ProdutosVendedor() {
             </thead>
 
             <tbody>
-              {produtosFiltrados.map((produto) => (
-                <tr key={produto.id}>
-                  <td>
-                    <img
-                      src={
-                        produto.image ||
-                        "/images/produtos/sem-imagem.jpg"
-                      }
-                      alt={produto.name}
-                      className="rounded"
-                      style={{
-                        width: 80,
-                        height: 80,
-                        objectFit: "cover",
-                      }}
-                    />
-                  </td>
+              {produtosFiltrados.map((produto) => {
+                const stockTotal = calcularStockTotal(produto);
 
-                  <td>
-                    <strong>{produto.name}</strong>
+                return (
+                  <tr
+                    key={produto.id}
+                    className={stockTotal <= 0 ? "table-danger" : ""}
+                  >
+                    <td>
+                      <img
+                        src={
+                          produto.image || "/images/produtos/sem-imagem.jpg"
+                        }
+                        alt={produto.name}
+                        className="rounded"
+                        style={{
+                          width: 80,
+                          height: 80,
+                          objectFit: "cover",
+                          filter: stockTotal <= 0 ? "grayscale(80%)" : "none",
+                        }}
+                      />
+                    </td>
 
-                    <div className="text-muted">
-                      {produto.brand || "Sem marca"}
-                    </div>
-                  </td>
+                    <td>
+                      <strong>{produto.name}</strong>
 
-                  <td>
-                    {produto.category
-                      ? produto.category.name
-                      : "Sem categoria"}
-                  </td>
+                      <div className="text-muted">
+                        {produto.brand || "Sem marca"}
+                      </div>
+                    </td>
 
-                  <td>{produto.size}</td>
+                    <td>
+                      {produto.category
+                        ? produto.category.name
+                        : "Sem categoria"}
+                    </td>
 
-                  <td>
-                    {Number(produto.price).toFixed(2)} €
-                  </td>
+                    <td>{obterTamanhos(produto)}</td>
 
-                  <td>{produto.stock}</td>
+                    <td>{Number(produto.price).toFixed(2)} €</td>
 
-                  <td>{produto.condition}</td>
+                    <td>{mostrarEstadoStock(produto)}</td>
 
-                  <td>
-                    <Link
-                      className="btn btn-sm btn-outline-primary me-2"
-                      to={`/vendedor/editar-produto/${produto.id}`}
-                    >
-                      Editar
-                    </Link>
+                    <td>{produto.condition}</td>
 
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => apagarProduto(produto.id)}
-                    >
-                      Apagar
-                    </button>
-                  </td>
-                  <td>{produto.date}</td>
-                </tr>
-              ))}
+                    <td>
+                      <Link
+                        className="btn btn-sm btn-outline-primary me-2"
+                        to={`/vendedor/editar-produto/${produto.id}`}
+                      >
+                        Editar
+                      </Link>
+
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => apagarProduto(produto.id)}
+                      >
+                        Apagar
+                      </button>
+                    </td>
+
+                    <td>
+                      {produto.createdAt
+                        ? new Date(produto.createdAt).toLocaleDateString("pt-PT")
+                        : "—"}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
-
           </table>
         </div>
       )}

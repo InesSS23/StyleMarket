@@ -16,6 +16,7 @@ function Catalogo() {
       .then((response) => {
         if (response.data.success) {
           setProdutos(response.data.data);
+          setErro("");
         } else {
           setErro("Não foi possível carregar os produtos.");
         }
@@ -26,7 +27,8 @@ function Catalogo() {
   }
 
   useEffect(() => {
-    carregarProdutos();
+    const timer = setTimeout(carregarProdutos, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   function limparFiltros() {
@@ -44,11 +46,25 @@ function Catalogo() {
     ),
   ];
 
-  const tamanhos = [...new Set(produtos.map((produto) => produto.size))];
+  const tamanhos = [
+    ...new Set(
+      produtos.flatMap((produto) => {
+        const variantes = produto.productVariants || [];
+
+        if (variantes.length > 0) {
+          return variantes.map((variante) => variante.size);
+        }
+
+        return produto.size ? [produto.size] : [];
+      })
+    ),
+  ];
 
   const estados = [...new Set(produtos.map((produto) => produto.condition))];
 
   const produtosFiltrados = produtos.filter((produto) => {
+    const variantes = produto.productVariants || [];
+
     const correspondePesquisa = produto.name
       .toLowerCase()
       .includes(pesquisa.toLowerCase());
@@ -57,7 +73,10 @@ function Catalogo() {
       categoria === "" ||
       (produto.category && produto.category.name === categoria);
 
-    const correspondeTamanho = tamanho === "" || produto.size === tamanho;
+    const correspondeTamanho =
+      tamanho === "" ||
+      produto.size === tamanho ||
+      variantes.some((variante) => variante.size === tamanho);
 
     const correspondeEstado = estado === "" || produto.condition === estado;
 
@@ -189,7 +208,10 @@ function Catalogo() {
                 </p>
               </div>
 
-              <button className="btn btn-outline-primary" onClick={carregarProdutos}>
+              <button
+                className="btn btn-outline-primary"
+                onClick={carregarProdutos}
+              >
                 Atualizar catálogo
               </button>
             </div>
