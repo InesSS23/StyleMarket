@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
-import { getSellerId } from "../../services/seller";
+import { obterIdVendedor } from "../../utils/authUtils";
 import {
   calcularStockTotal,
   contarVariantesEsgotadas,
@@ -21,7 +21,7 @@ function ProdutosVendedor() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
 
-  const sellerId = getSellerId();
+  const sellerId = obterIdVendedor();
 
   const carregarProdutos = useCallback(() => {
     if (!sellerId) {

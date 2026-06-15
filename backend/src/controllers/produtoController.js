@@ -674,40 +674,4 @@ controllers.apagar = async (req, res) => {
   }
 };
 
-/* Rota temporária para produtos antigos */
-controllers.criarVariantesAntigas = async (req, res) => {
-  try {
-    const produtos = await Product.findAll({
-      include: [ProductVariant],
-    });
-
-    let totalCriadas = 0;
-
-    for (const produto of produtos) {
-      if (!produto.productVariants || produto.productVariants.length === 0) {
-        await ProductVariant.create({
-          productId: produto.id,
-          size: produto.size || "Único",
-          color: produto.color || "Única",
-          stock: produto.stock || 0,
-        });
-
-        totalCriadas++;
-      }
-    }
-
-    res.json({
-      success: true,
-      message: "Variações antigas verificadas.",
-      totalCriadas,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Erro ao criar variações antigas.",
-      error: error.message,
-    });
-  }
-};
-
 module.exports = controllers;

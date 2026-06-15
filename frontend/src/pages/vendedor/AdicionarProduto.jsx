@@ -1,7 +1,7 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
-import { getSellerId } from "../../services/seller";
+import { obterIdVendedor } from "../../utils/authUtils";
 
 const TAMANHOS = [
   "Único",
@@ -37,7 +37,7 @@ function criarVarianteVazia() {
 
 function AdicionarProduto() {
   const navigate = useNavigate();
-  const sellerId = getSellerId();
+  const sellerId = obterIdVendedor();
   const fileInputRef = useRef(null);
 
   const [categorias, setCategorias] = useState([]);

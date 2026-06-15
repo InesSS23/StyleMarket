@@ -67,6 +67,7 @@ function App() {
             </RotaProtegida>
           }
         >
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<DashboardVendedor />} />
           <Route path="produtos" element={<ProdutosVendedor />} />
           <Route path="adicionar-produto" element={<AdicionarProduto />} />
@@ -89,6 +90,8 @@ function App() {
           <Route path="categorias" element={<GerirCategorias />} />
           <Route path="encomendas" element={<GerirEncomendas />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

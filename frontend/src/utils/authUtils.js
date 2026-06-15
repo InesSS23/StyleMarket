@@ -11,10 +11,9 @@ export function guardarUtilizador(user, lembrar) {
 }
 
 export function obterUtilizador() {
-  const utilizadorLocal = localStorage.getItem("utilizador");
-  const utilizadorSessao = sessionStorage.getItem("utilizador");
-
-  const dadosGuardados = utilizadorLocal || utilizadorSessao;
+  const dadosGuardados =
+    localStorage.getItem("utilizador") ||
+    sessionStorage.getItem("utilizador");
 
   if (!dadosGuardados) {
     return null;
@@ -29,21 +28,17 @@ export function obterUtilizador() {
   }
 }
 
+export function obterIdVendedor() {
+  const utilizador = obterUtilizador();
+
+  if (!utilizador || utilizador.role !== "vendedor") {
+    return null;
+  }
+
+  return Number(utilizador.id);
+}
+
 export function terminarSessao() {
   localStorage.removeItem("utilizador");
   sessionStorage.removeItem("utilizador");
-}
-
-export function estaAutenticado() {
-  return obterUtilizador() !== null;
-}
-
-export function temPerfil(perfisPermitidos) {
-  const utilizador = obterUtilizador();
-
-  if (!utilizador) {
-    return false;
-  }
-
-  return perfisPermitidos.includes(utilizador.role);
 }

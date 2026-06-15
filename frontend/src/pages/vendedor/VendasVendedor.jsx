@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
-import { getSellerId } from "../../services/seller";
+import { obterIdVendedor } from "../../utils/authUtils";
 
 function calcularTotalItens(encomenda) {
   return (encomenda.orderItems || []).reduce(
@@ -27,7 +27,7 @@ function obterDetalhesVariante(item) {
 }
 
 function VendasVendedor() {
-  const sellerId = getSellerId();
+  const sellerId = obterIdVendedor();
 
   const [encomendas, setEncomendas] = useState([]);
   const [erro, setErro] = useState("");
