@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { guardarUtilizador } from "../utils/authUtils";
+import { tratarCarrinhoAposLogin } from "../utils/carrinhoUtils";
 
 function Login() {
   const navigate = useNavigate();
@@ -18,7 +19,18 @@ function Login() {
       return false;
     }
 
-    if (caminho.startsWith("/vendedor") && role !== "vendedor") {
+    if (
+      caminho.startsWith("/vendedor") &&
+      role !== "vendedor"
+    ) {
+      return false;
+    }
+
+    if (
+      (caminho === "/carrinho" ||
+        caminho === "/finalizar-compra") &&
+      role !== "comprador"
+    ) {
       return false;
     }
 
@@ -28,7 +40,10 @@ function Login() {
   function redirecionarPorPerfil(user) {
     const caminhoAnterior = location.state?.from?.pathname;
 
-    if (caminhoAnterior && caminhoPermitido(caminhoAnterior, user.role)) {
+    if (
+      caminhoAnterior &&
+      caminhoPermitido(caminhoAnterior, user.role)
+    ) {
       navigate(caminhoAnterior, { replace: true });
       return;
     }
@@ -48,6 +63,7 @@ function Login() {
 
   function handleSubmit(event) {
     event.preventDefault();
+
     setErro("");
     setLoading(true);
 
@@ -61,13 +77,23 @@ function Login() {
           const user = response.data.data;
 
           guardarUtilizador(user, rememberMe);
+
+          /*
+            Comprador:
+            junta o carrinho visitante ao carrinho da conta.
+
+            Vendedor ou administrador:
+            elimina o carrinho visitante.
+          */
+          tratarCarrinhoAposLogin(user);
+
           redirecionarPorPerfil(user);
         } else {
           setErro("Não foi possível iniciar sessão.");
         }
       })
       .catch((error) => {
-        if (error.response && error.response.data.message) {
+        if (error.response?.data?.message) {
           setErro(error.response.data.message);
         } else {
           setErro("Erro ao ligar ao servidor.");
@@ -81,13 +107,21 @@ function Login() {
   return (
     <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 py-4 bg-light">
       <div className="text-center mb-4">
-        <div className="text-primary fw-bold fs-3">StyleMarket</div>
-        <small className="text-muted">Bem-vindo de volta!</small>
+        <div className="text-primary fw-bold fs-3">
+          StyleMarket
+        </div>
+
+        <small className="text-muted">
+          Bem-vindo de volta!
+        </small>
       </div>
 
       <div
         className="card shadow-sm p-4 w-100"
-        style={{ maxWidth: "440px", borderRadius: "1.25rem" }}
+        style={{
+          maxWidth: "440px",
+          borderRadius: "1.25rem",
+        }}
       >
         <h2 className="fw-bold mb-1 fs-3">Login</h2>
 
@@ -95,15 +129,19 @@ function Login() {
           Entrada única para comprador, vendedor e administrador.
         </p>
 
-        {location.state?.from?.pathname === "/finalizar-compra" && (
+        {location.state?.from?.pathname ===
+          "/finalizar-compra" && (
           <div className="alert alert-info small">
-            Para finalizar a compra, inicia sessão primeiro. O teu carrinho será
-            mantido.
+            Para finalizares a compra, inicia sessão com uma
+            conta de comprador. Os produtos serão associados ao
+            carrinho dessa conta.
           </div>
         )}
 
         {erro && (
-          <div className="alert alert-danger p-2 small text-center">{erro}</div>
+          <div className="alert alert-danger p-2 small text-center">
+            {erro}
+          </div>
         )}
 
         <form onSubmit={handleSubmit}>
@@ -117,8 +155,13 @@ function Login() {
               className="form-control"
               placeholder="seu@email.com"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              style={{ height: "3.2rem", borderRadius: "0.5rem" }}
+              onChange={(event) =>
+                setEmail(event.target.value)
+              }
+              style={{
+                height: "3.2rem",
+                borderRadius: "0.5rem",
+              }}
               required
             />
           </div>
@@ -133,8 +176,13 @@ function Login() {
               className="form-control"
               placeholder="••••••••"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              style={{ height: "3.2rem", borderRadius: "0.5rem" }}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
+              style={{
+                height: "3.2rem",
+                borderRadius: "0.5rem",
+              }}
               required
             />
           </div>
@@ -145,10 +193,15 @@ function Login() {
               className="form-check-input"
               id="rememberMe"
               checked={rememberMe}
-              onChange={(event) => setRememberMe(event.target.checked)}
+              onChange={(event) =>
+                setRememberMe(event.target.checked)
+              }
             />
 
-            <label className="form-check-label text-secondary" htmlFor="rememberMe">
+            <label
+              className="form-check-label text-secondary"
+              htmlFor="rememberMe"
+            >
               Lembrar-me
             </label>
           </div>
@@ -156,7 +209,10 @@ function Login() {
           <button
             type="submit"
             className="btn btn-primary w-100 fw-semibold"
-            style={{ height: "3.2rem", borderRadius: "0.5rem" }}
+            style={{
+              height: "3.2rem",
+              borderRadius: "0.5rem",
+            }}
             disabled={loading}
           >
             {loading ? "A entrar..." : "Entrar"}
