@@ -2,12 +2,16 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import { guardarCarrinho, obterCarrinho } from "../../utils/carrinhoUtils";
+import { obterUtilizador } from "../../utils/authUtils";
 
 function FinalizarCompra() {
+  const utilizador = obterUtilizador();
+
   const [itens, setItens] = useState(() => obterCarrinho());
   const [encomenda, setEncomenda] = useState(null);
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
+
   const [dadosPagamento, setDadosPagamento] = useState({
     cardNumber: "",
     cardName: "",
@@ -17,18 +21,19 @@ function FinalizarCompra() {
     paypalEmail: "",
   });
 
-  const [dados, setDados] = useState({
-    nome: "",
-    email: "",
+  const [dados, setDados] = useState(() => ({
+    nome: utilizador?.name || "",
+    email: utilizador?.email || "",
     contacto: "",
     morada: "",
     codigoPostal: "",
     cidade: "",
     pagamento: "Cartão de crédito/débito",
-  });
+  }));
 
   const subtotal = itens.reduce(
-    (soma, item) => soma + Number(item.price) * item.quantidade,
+    (soma, item) =>
+      soma + Number(item.price) * Number(item.quantidade),
     0
   );
 
@@ -38,28 +43,28 @@ function FinalizarCompra() {
   function handleChange(event) {
     const { name, value } = event.target;
 
-    setDados({
-      ...dados,
+    setDados((dadosAtuais) => ({
+      ...dadosAtuais,
       [name]: value,
-    });
+    }));
   }
 
   function handlePaymentChange(event) {
     const { name, value } = event.target;
 
-    setDadosPagamento({
-      ...dadosPagamento,
+    setDadosPagamento((dadosAtuais) => ({
+      ...dadosAtuais,
       [name]: value,
-    });
+    }));
   }
 
   function validarDadosPagamento() {
     if (dados.pagamento === "Cartão de crédito/débito") {
       if (
-        !dadosPagamento.cardNumber ||
-        !dadosPagamento.cardName ||
-        !dadosPagamento.cardExpiry ||
-        !dadosPagamento.cardCvv
+        !dadosPagamento.cardNumber.trim() ||
+        !dadosPagamento.cardName.trim() ||
+        !dadosPagamento.cardExpiry.trim() ||
+        !dadosPagamento.cardCvv.trim()
       ) {
         setErro("Preenche os dados do cartão de crédito/débito.");
         return false;
@@ -69,7 +74,7 @@ function FinalizarCompra() {
     }
 
     if (dados.pagamento === "MB WAY") {
-      if (!dadosPagamento.mbwayPhone) {
+      if (!dadosPagamento.mbwayPhone.trim()) {
         setErro("Preenche o número de telemóvel do MB WAY.");
         return false;
       }
@@ -78,7 +83,7 @@ function FinalizarCompra() {
     }
 
     if (dados.pagamento === "PayPal") {
-      if (!dadosPagamento.paypalEmail) {
+      if (!dadosPagamento.paypalEmail.trim()) {
         setErro("Preenche o email da conta PayPal.");
         return false;
       }
@@ -95,12 +100,12 @@ function FinalizarCompra() {
     setErro("");
 
     if (
-      !dados.nome ||
-      !dados.email ||
-      !dados.contacto ||
-      !dados.morada ||
-      !dados.codigoPostal ||
-      !dados.cidade
+      !dados.nome.trim() ||
+      !dados.email.trim() ||
+      !dados.contacto.trim() ||
+      !dados.morada.trim() ||
+      !dados.codigoPostal.trim() ||
+      !dados.cidade.trim()
     ) {
       setErro("Preenche todos os campos obrigatórios.");
       return;
@@ -112,8 +117,8 @@ function FinalizarCompra() {
 
     const items = itens.map((item) => ({
       productId: item.id,
-      productVariantId: item.variantId,
-      quantity: item.quantidade,
+      productVariantId: item.variantId || null,
+      quantity: Number(item.quantidade),
     }));
 
     setLoading(true);
@@ -121,12 +126,13 @@ function FinalizarCompra() {
     api
       .post("/encomendas/criar", {
         customer: {
-          name: dados.nome,
-          email: dados.email,
-          phone: dados.contacto,
-          address: dados.morada,
-          postalCode: dados.codigoPostal,
-          city: dados.cidade,
+          name: dados.nome.trim(),
+          email: dados.email.trim(),
+          phone: dados.contacto.trim(),
+          address: dados.morada.trim(),
+          postalCode: dados.codigoPostal.trim(),
+          city: dados.cidade.trim(),
+          buyerId: utilizador?.id || null,
         },
         paymentMethod: dados.pagamento,
         items,
@@ -158,24 +164,36 @@ function FinalizarCompra() {
           <div className="checkout-success mx-auto">
             <div className="card border-0 shadow-sm text-center">
               <div className="card-body p-5">
-                <div className="success-circle mx-auto mb-4">✓</div>
+                <div className="success-circle mx-auto mb-4">
+                  ✓
+                </div>
 
-                <h1 className="fw-bold mb-2">Encomenda confirmada</h1>
+                <h1 className="fw-bold mb-2">
+                  Encomenda confirmada
+                </h1>
 
                 <p className="text-muted mb-3">
-                  A tua encomenda foi registada com sucesso na base de dados.
+                  A tua encomenda foi registada com sucesso na base de
+                  dados.
                 </p>
 
                 <p className="mb-4">
-                  Número da encomenda: <strong>#{encomenda.id}</strong>
+                  Número da encomenda:{" "}
+                  <strong>#{encomenda.id}</strong>
                 </p>
 
                 <div className="d-flex flex-column flex-sm-row gap-2 justify-content-center">
-                  <Link to="/catalogo" className="btn btn-primary">
+                  <Link
+                    to="/catalogo"
+                    className="btn btn-primary"
+                  >
                     Voltar ao catálogo
                   </Link>
 
-                  <Link to="/" className="btn btn-outline-dark">
+                  <Link
+                    to="/"
+                    className="btn btn-outline-dark"
+                  >
                     Ir para início
                   </Link>
                 </div>
@@ -191,13 +209,18 @@ function FinalizarCompra() {
     return (
       <div className="bg-light min-vh-100 d-flex align-items-center">
         <div className="container py-5 text-center">
-          <h1 className="fw-bold mb-2">Finalizar Compra</h1>
+          <h1 className="fw-bold mb-2">
+            Finalizar Compra
+          </h1>
 
           <p className="text-muted mb-4">
             Não existem produtos no carrinho para finalizar a compra.
           </p>
 
-          <Link to="/catalogo" className="btn btn-primary px-5">
+          <Link
+            to="/catalogo"
+            className="btn btn-primary px-5"
+          >
             Ver catálogo
           </Link>
         </div>
@@ -209,26 +232,36 @@ function FinalizarCompra() {
     <div className="bg-light min-vh-100 py-5">
       <div className="container checkout-container">
         <div className="mb-4">
-          <h1 className="fw-bold mb-1">Finalizar Compra</h1>
+          <h1 className="fw-bold mb-1">
+            Finalizar Compra
+          </h1>
+
           <p className="text-muted mb-0">
-            Preenche os teus dados para confirmar a encomenda.
+            Confirma os teus dados para concluir a encomenda.
           </p>
         </div>
 
-        {erro && <div className="alert alert-danger">{erro}</div>}
+        {erro && (
+          <div className="alert alert-danger">
+            {erro}
+          </div>
+        )}
 
         <form onSubmit={confirmarEncomenda}>
           <div className="row g-4">
             <div className="col-lg-8">
               <div className="card border-0 shadow-sm mb-4 checkout-card">
                 <div className="card-body p-4">
-                  <h5 className="fw-bold mb-4">Dados de Envio</h5>
+                  <h5 className="fw-bold mb-4">
+                    Dados de Envio
+                  </h5>
 
                   <div className="row g-3">
                     <div className="col-md-6">
                       <label className="form-label fw-medium">
                         Nome completo
                       </label>
+
                       <input
                         type="text"
                         className="form-control"
@@ -236,11 +269,20 @@ function FinalizarCompra() {
                         value={dados.nome}
                         onChange={handleChange}
                         placeholder="Nome do comprador"
+                        required
                       />
+
+                      <div className="form-text">
+                        Preenchido com o nome da conta, mas pode ser
+                        alterado para esta encomenda.
+                      </div>
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label fw-medium">Email</label>
+                      <label className="form-label fw-medium">
+                        Email
+                      </label>
+
                       <input
                         type="email"
                         className="form-control"
@@ -248,11 +290,20 @@ function FinalizarCompra() {
                         value={dados.email}
                         onChange={handleChange}
                         placeholder="email@exemplo.com"
+                        required
                       />
+
+                      <div className="form-text">
+                        Preenchido com o email da conta, mas pode ser
+                        alterado para esta encomenda.
+                      </div>
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label fw-medium">Contacto</label>
+                      <label className="form-label fw-medium">
+                        Contacto
+                      </label>
+
                       <input
                         type="text"
                         className="form-control"
@@ -260,6 +311,7 @@ function FinalizarCompra() {
                         value={dados.contacto}
                         onChange={handleChange}
                         placeholder="+351 912 345 678"
+                        required
                       />
                     </div>
 
@@ -267,6 +319,7 @@ function FinalizarCompra() {
                       <label className="form-label fw-medium">
                         Código postal
                       </label>
+
                       <input
                         type="text"
                         className="form-control"
@@ -274,11 +327,15 @@ function FinalizarCompra() {
                         value={dados.codigoPostal}
                         onChange={handleChange}
                         placeholder="3500-000"
+                        required
                       />
                     </div>
 
                     <div className="col-12">
-                      <label className="form-label fw-medium">Morada</label>
+                      <label className="form-label fw-medium">
+                        Morada
+                      </label>
+
                       <input
                         type="text"
                         className="form-control"
@@ -286,11 +343,15 @@ function FinalizarCompra() {
                         value={dados.morada}
                         onChange={handleChange}
                         placeholder="Rua, número, andar"
+                        required
                       />
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label fw-medium">Cidade</label>
+                      <label className="form-label fw-medium">
+                        Cidade
+                      </label>
+
                       <input
                         type="text"
                         className="form-control"
@@ -298,6 +359,7 @@ function FinalizarCompra() {
                         value={dados.cidade}
                         onChange={handleChange}
                         placeholder="Viseu"
+                        required
                       />
                     </div>
                   </div>
@@ -306,7 +368,9 @@ function FinalizarCompra() {
 
               <div className="card border-0 shadow-sm checkout-card">
                 <div className="card-body p-4">
-                  <h5 className="fw-bold mb-4">Método de Pagamento</h5>
+                  <h5 className="fw-bold mb-4">
+                    Método de Pagamento
+                  </h5>
 
                   <div className="payment-option mb-3">
                     <input
@@ -315,24 +379,34 @@ function FinalizarCompra() {
                       id="cartao"
                       name="pagamento"
                       value="Cartão de crédito/débito"
-                      checked={dados.pagamento === "Cartão de crédito/débito"}
+                      checked={
+                        dados.pagamento ===
+                        "Cartão de crédito/débito"
+                      }
                       onChange={handleChange}
                     />
 
-                    <label htmlFor="cartao" className="form-check-label">
+                    <label
+                      htmlFor="cartao"
+                      className="form-check-label"
+                    >
                       Cartão de crédito/débito
                     </label>
                   </div>
 
-                  {dados.pagamento === "Cartão de crédito/débito" && (
+                  {dados.pagamento ===
+                    "Cartão de crédito/débito" && (
                     <div className="payment-details-panel mb-3">
-                      <h6 className="fw-bold mb-3">Dados do cartão</h6>
+                      <h6 className="fw-bold mb-3">
+                        Dados do cartão
+                      </h6>
 
                       <div className="row g-3">
                         <div className="col-12">
                           <label className="form-label fw-medium">
                             Nome no cartão
                           </label>
+
                           <input
                             type="text"
                             className="form-control"
@@ -347,6 +421,7 @@ function FinalizarCompra() {
                           <label className="form-label fw-medium">
                             Número do cartão
                           </label>
+
                           <input
                             type="text"
                             className="form-control"
@@ -361,6 +436,7 @@ function FinalizarCompra() {
                           <label className="form-label fw-medium">
                             Validade
                           </label>
+
                           <input
                             type="text"
                             className="form-control"
@@ -372,7 +448,10 @@ function FinalizarCompra() {
                         </div>
 
                         <div className="col-md-6">
-                          <label className="form-label fw-medium">CVV</label>
+                          <label className="form-label fw-medium">
+                            CVV
+                          </label>
+
                           <input
                             type="text"
                             className="form-control"
@@ -397,19 +476,25 @@ function FinalizarCompra() {
                       onChange={handleChange}
                     />
 
-                    <label htmlFor="mbway" className="form-check-label">
+                    <label
+                      htmlFor="mbway"
+                      className="form-check-label"
+                    >
                       MB WAY
                     </label>
                   </div>
 
                   {dados.pagamento === "MB WAY" && (
                     <div className="payment-details-panel mb-3">
-                      <h6 className="fw-bold mb-3">Dados do MB WAY</h6>
+                      <h6 className="fw-bold mb-3">
+                        Dados do MB WAY
+                      </h6>
 
                       <div>
                         <label className="form-label fw-medium">
                           Número de telemóvel
                         </label>
+
                         <input
                           type="tel"
                           className="form-control"
@@ -433,19 +518,25 @@ function FinalizarCompra() {
                       onChange={handleChange}
                     />
 
-                    <label htmlFor="paypal" className="form-check-label">
+                    <label
+                      htmlFor="paypal"
+                      className="form-check-label"
+                    >
                       PayPal
                     </label>
                   </div>
 
                   {dados.pagamento === "PayPal" && (
                     <div className="payment-details-panel mt-3">
-                      <h6 className="fw-bold mb-3">Dados do PayPal</h6>
+                      <h6 className="fw-bold mb-3">
+                        Dados do PayPal
+                      </h6>
 
                       <div>
                         <label className="form-label fw-medium">
                           Email da conta PayPal
                         </label>
+
                         <input
                           type="email"
                           className="form-control"
@@ -464,22 +555,33 @@ function FinalizarCompra() {
             <div className="col-lg-4">
               <div className="card border-0 shadow-sm order-summary-card">
                 <div className="card-body p-4">
-                  <h5 className="fw-bold mb-4">Resumo</h5>
+                  <h5 className="fw-bold mb-4">
+                    Resumo
+                  </h5>
 
                   <div className="checkout-items mb-3">
                     {itens.map((item) => (
-                      <div className="d-flex gap-3 mb-3" key={item.id}>
+                      <div
+                        className="d-flex gap-3 mb-3"
+                        key={`${item.id}-${item.variantId || "produto"}`}
+                      >
                         <img
-                          src={item.image || "/images/produtos/sem-imagem.jpg"}
+                          src={
+                            item.image ||
+                            "/images/produtos/sem-imagem.jpg"
+                          }
                           alt={item.name}
                           className="checkout-product-image"
                         />
 
                         <div className="flex-grow-1">
                           <strong>{item.name}</strong>
+
                           <br />
+
                           <small className="text-muted">
-                            {item.size} · {item.color} · qtd. {item.quantidade}
+                            {item.size} · {item.color} · qtd.{" "}
+                            {item.quantidade}
                           </small>
                         </div>
                       </div>
@@ -495,7 +597,12 @@ function FinalizarCompra() {
 
                   <div className="d-flex justify-content-between text-muted mb-2">
                     <span>Envio</span>
-                    <span>{envio === 0 ? "Grátis" : `${envio.toFixed(2)} €`}</span>
+
+                    <span>
+                      {envio === 0
+                        ? "Grátis"
+                        : `${envio.toFixed(2)} €`}
+                    </span>
                   </div>
 
                   <hr />
@@ -510,7 +617,9 @@ function FinalizarCompra() {
                     className="btn btn-primary w-100"
                     disabled={loading}
                   >
-                    {loading ? "A confirmar..." : "Confirmar compra"}
+                    {loading
+                      ? "A confirmar..."
+                      : "Confirmar compra"}
                   </button>
 
                   <Link
@@ -521,7 +630,8 @@ function FinalizarCompra() {
                   </Link>
 
                   <p className="text-muted text-center mt-3 mb-0 small">
-                    Ao confirmar, a encomenda será guardada na base de dados.
+                    Ao confirmar, a encomenda será guardada na base de
+                    dados.
                   </p>
                 </div>
               </div>

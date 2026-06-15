@@ -47,7 +47,7 @@ function EditarProduto() {
   const [usarOutraMarca, setUsarOutraMarca] = useState(false);
   const [temVariantes, setTemVariantes] = useState(false);
   const [variantes, setVariantes] = useState([]);
-  const [preview, setPreview] = useState(null);
+  const [imagens, setImagens] = useState([]);
   const [erro, setErro] = useState("");
   const [carregandoPagina, setCarregandoPagina] = useState(true);
   const [carregando, setCarregando] = useState(false);
@@ -59,7 +59,6 @@ function EditarProduto() {
     categoryId: "",
     brand: "",
     condition: "Novo",
-    image: "",
   });
 
   useEffect(() => {
@@ -123,10 +122,19 @@ function EditarProduto() {
           categoryId: produto.categoryId || "",
           brand: produto.brand || "",
           condition: produto.condition || "Novo",
-          image: produto.image || "",
         });
 
-        setPreview(produto.image || null);
+        const imagensProduto =
+          Array.isArray(produto.productImages) && produto.productImages.length > 0
+            ? [...produto.productImages]
+                .sort((a, b) => Number(a.position || 0) - Number(b.position || 0))
+                .map((item) => item.image)
+                .filter(Boolean)
+            : produto.image
+              ? [produto.image]
+              : [];
+
+        setImagens(imagensProduto);
         setVariantes(variantesProduto);
         setTemVariantes(variantesProduto.length > 1);
 
@@ -243,48 +251,72 @@ function EditarProduto() {
     );
   }
 
-  function handleFile(file) {
-    if (!file) {
+  function lerFicheiro(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Erro ao ler a imagem."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function adicionarImagens(files) {
+    const ficheiros = Array.from(files || []);
+
+    if (ficheiros.length === 0) {
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
-      setErro("Seleciona um ficheiro de imagem válido.");
+    if (imagens.length + ficheiros.length > 6) {
+      setErro("Podes manter no máximo 6 imagens por produto.");
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErro("A imagem não pode ter mais de 5 MB.");
+    if (ficheiros.some((file) => !file.type.startsWith("image/"))) {
+      setErro("Seleciona apenas ficheiros de imagem.");
       return;
     }
 
-    const reader = new FileReader();
+    if (ficheiros.some((file) => file.size > 3 * 1024 * 1024)) {
+      setErro("Cada imagem pode ter no máximo 3 MB.");
+      return;
+    }
 
-    reader.onload = () => {
-      setForm((formAtual) => ({
-        ...formAtual,
-        image: reader.result,
-      }));
-      setPreview(reader.result);
+    try {
+      const imagensLidas = await Promise.all(ficheiros.map(lerFicheiro));
+      setImagens((atuais) => [...atuais, ...imagensLidas]);
       setErro("");
-    };
-
-    reader.readAsDataURL(file);
+    } catch (error) {
+      setErro(error.message);
+    }
   }
 
   function handleFileChange(event) {
-    handleFile(event.target.files?.[0]);
+    adicionarImagens(event.target.files);
+    event.target.value = "";
   }
 
   function handleDrop(event) {
     event.preventDefault();
     event.stopPropagation();
-    handleFile(event.dataTransfer.files?.[0]);
+    adicionarImagens(event.dataTransfer.files);
   }
 
   function handleDragOver(event) {
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  function removerImagem(index) {
+    setImagens((atuais) => atuais.filter((_, posicao) => posicao !== index));
+  }
+
+  function definirImagemPrincipal(index) {
+    setImagens((atuais) => {
+      const copia = [...atuais];
+      const [selecionada] = copia.splice(index, 1);
+      return [selecionada, ...copia];
+    });
   }
 
   function prepararVariantes() {
@@ -368,7 +400,8 @@ function EditarProduto() {
         categoryId: Number(form.categoryId),
         brand: form.brand.trim() || null,
         condition: form.condition,
-        image: form.image,
+        image: imagens[0] || null,
+        images: imagens,
         sellerId,
         size: primeiraVariante.size,
         color: primeiraVariante.color,
@@ -671,11 +704,15 @@ function EditarProduto() {
             </div>
 
             <div className="col-12 mt-4">
-              <label className="form-label">Imagem do Produto</label>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <label className="form-label mb-0">Imagens do Produto</label>
+                <span className="text-muted small">{imagens.length}/6</span>
+              </div>
+
               <div
                 className="border rounded p-4 d-flex flex-column justify-content-center align-items-center"
                 style={{
-                  minHeight: 220,
+                  minHeight: 150,
                   borderStyle: "dashed",
                   cursor: "pointer",
                 }}
@@ -683,36 +720,64 @@ function EditarProduto() {
                 onDragOver={handleDragOver}
                 onClick={() => fileInputRef.current?.click()}
               >
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt="Pré-visualização do produto"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: 180,
-                      objectFit: "contain",
-                    }}
-                  />
-                ) : (
-                  <>
-                    <div className="fs-1 text-secondary">↑</div>
-                    <div className="text-center text-muted">
-                      Arrasta a imagem ou clica para procurar
-                    </div>
-                    <div className="text-center text-muted small">
-                      PNG ou JPG até 5 MB
-                    </div>
-                  </>
-                )}
+                <div className="fs-1 text-secondary">↑</div>
+                <div className="text-center text-muted">
+                  Arrasta novas imagens ou clica para procurar
+                </div>
+                <div className="text-center text-muted small">
+                  Até 6 imagens, máximo 3 MB por imagem
+                </div>
 
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   className="d-none"
                   onChange={handleFileChange}
                 />
               </div>
+
+              {imagens.length > 0 ? (
+                <div className="row g-3 mt-1">
+                  {imagens.map((imagem, index) => (
+                    <div className="col-6 col-md-4 col-xl-3" key={`${imagem.slice(0, 40)}-${index}`}>
+                      <div className="card h-100">
+                        <img
+                          src={imagem}
+                          alt={`Imagem ${index + 1} do produto`}
+                          className="card-img-top"
+                          style={{ height: 150, objectFit: "cover" }}
+                        />
+                        <div className="card-body p-2">
+                          {index === 0 ? (
+                            <span className="badge bg-primary mb-2">Imagem principal</span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-primary w-100 mb-2"
+                              onClick={() => definirImagemPrincipal(index)}
+                            >
+                              Tornar principal
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger w-100"
+                            onClick={() => removerImagem(index)}
+                          >
+                            Remover
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="alert alert-secondary mt-3 mb-0">
+                  Este produto ficará sem imagem.
+                </div>
+              )}
             </div>
 
             <div className="col-12 mt-4">

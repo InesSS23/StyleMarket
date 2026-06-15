@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import api from "../../services/api";
 import { adicionarAoCarrinho } from "../../utils/carrinhoUtils";
 import { obterUtilizador } from "../../utils/authUtils";
+import { obterImagensProduto } from "../../utils/produtoUtils";
 
 function DetalhesProduto() {
   const { id } = useParams();
@@ -14,6 +15,7 @@ function DetalhesProduto() {
   const [erro, setErro] = useState("");
   const [corSelecionada, setCorSelecionada] = useState("");
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState("");
+  const [indiceImagem, setIndiceImagem] = useState(0);
 
   useEffect(() => {
     api
@@ -67,6 +69,8 @@ function DetalhesProduto() {
   }
 
   const variantes = produto.productVariants || [];
+  const imagensProduto = obterImagensProduto(produto);
+  const imagemAtual = imagensProduto[indiceImagem] || imagensProduto[0];
 
   const stockTotal =
     variantes.length > 0
@@ -99,6 +103,18 @@ function DetalhesProduto() {
       ? Boolean(temStockNaVariante)
       : Number(produto.stock || 0) > 0;
 
+  function imagemAnterior() {
+    setIndiceImagem((indiceAtual) =>
+      indiceAtual === 0 ? imagensProduto.length - 1 : indiceAtual - 1
+    );
+  }
+
+  function imagemSeguinte() {
+    setIndiceImagem((indiceAtual) =>
+      indiceAtual === imagensProduto.length - 1 ? 0 : indiceAtual + 1
+    );
+  }
+
   function handleAdicionarCarrinho() {
     if (variantes.length > 0 && !varianteSelecionada) {
       alert("Seleciona uma cor e um tamanho.");
@@ -116,19 +132,65 @@ function DetalhesProduto() {
       </Link>
 
       <div className="row g-5">
-        <div className="col-md-6 position-relative">
-          <img
-            src={produto.image || "/images/produtos/sem-imagem.jpg"}
-            alt={produto.name}
-            className={`img-fluid rounded shadow-sm detalhe-produto-imagem ${
-              produtoEsgotado ? "produto-imagem-esgotado" : ""
-            }`}
-          />
+        <div className="col-md-6">
+          <div className="position-relative">
+            <img
+              src={imagemAtual}
+              alt={`${produto.name} - imagem ${indiceImagem + 1}`}
+              className={`img-fluid rounded shadow-sm detalhe-produto-imagem ${
+                produtoEsgotado ? "produto-imagem-esgotado" : ""
+              }`}
+            />
 
-          {produtoEsgotado && (
-            <span className="badge bg-danger position-absolute top-0 end-0 m-3 fs-6">
-              Esgotado
-            </span>
+            {imagensProduto.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-dark position-absolute top-50 start-0 translate-middle-y ms-3"
+                  onClick={imagemAnterior}
+                  aria-label="Imagem anterior"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-dark position-absolute top-50 end-0 translate-middle-y me-3"
+                  onClick={imagemSeguinte}
+                  aria-label="Imagem seguinte"
+                >
+                  ›
+                </button>
+              </>
+            )}
+
+            {produtoEsgotado && (
+              <span className="badge bg-danger position-absolute top-0 end-0 m-3 fs-6">
+                Esgotado
+              </span>
+            )}
+          </div>
+
+          {imagensProduto.length > 1 && (
+            <div className="d-flex gap-2 overflow-auto mt-3 pb-2">
+              {imagensProduto.map((imagem, index) => (
+                <button
+                  type="button"
+                  className={`btn p-0 border-2 flex-shrink-0 ${
+                    indiceImagem === index ? "border-primary" : "border-light"
+                  }`}
+                  onClick={() => setIndiceImagem(index)}
+                  key={`${imagem.slice(0, 40)}-${index}`}
+                  aria-label={`Ver imagem ${index + 1}`}
+                >
+                  <img
+                    src={imagem}
+                    alt={`${produto.name} miniatura ${index + 1}`}
+                    style={{ width: 82, height: 82, objectFit: "cover" }}
+                    className="rounded"
+                  />
+                </button>
+              ))}
+            </div>
           )}
         </div>
 

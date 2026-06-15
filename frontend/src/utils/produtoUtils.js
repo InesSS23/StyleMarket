@@ -61,3 +61,18 @@ export function obterResumoVariantes(produto) {
 
   return `${variantes.length} opções · ${tamanhos.length} tamanho(s) · ${cores.length} cor(es)`;
 }
+
+export function obterImagensProduto(produto) {
+  if (Array.isArray(produto?.productImages) && produto.productImages.length > 0) {
+    return [...produto.productImages]
+      .sort((a, b) => Number(a.position || 0) - Number(b.position || 0))
+      .map((item) => item.image)
+      .filter(Boolean);
+  }
+
+  if (produto?.image) {
+    return [produto.image];
+  }
+
+  return ["/images/produtos/sem-imagem.jpg"];
+}

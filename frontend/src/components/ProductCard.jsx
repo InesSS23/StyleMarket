@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import { adicionarAoCarrinho } from "../utils/carrinhoUtils";
 import { obterUtilizador } from "../utils/authUtils";
+import { obterImagensProduto } from "../utils/produtoUtils";
 
 function ProductCard({ produto }) {
   const utilizador = obterUtilizador();
   const podeComprar = !utilizador || utilizador.role === "comprador";
 
   const variantes = produto.productVariants || [];
+  const imagemPrincipal = obterImagensProduto(produto)[0];
 
   const stockTotal =
     variantes.length > 0
@@ -33,7 +35,7 @@ function ProductCard({ produto }) {
     >
       <div className="position-relative">
         <img
-          src={produto.image || "/images/produtos/sem-imagem.jpg"}
+          src={imagemPrincipal}
           className="card-img-top product-image"
           alt={produto.name}
         />

@@ -50,7 +50,7 @@ function AdicionarProduto() {
   ]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
-  const [preview, setPreview] = useState(null);
+  const [imagens, setImagens] = useState([]);
 
   const [form, setForm] = useState({
     name: "",
@@ -62,7 +62,6 @@ function AdicionarProduto() {
     brand: "",
     stock: 1,
     condition: "Novo",
-    image: "",
   });
 
   useEffect(() => {
@@ -161,51 +160,80 @@ function AdicionarProduto() {
     );
   }
 
-  function handleFile(file) {
-    if (!file) {
+  function lerFicheiro(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Erro ao ler a imagem."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function adicionarImagens(files) {
+    const ficheiros = Array.from(files || []);
+
+    if (ficheiros.length === 0) {
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
-      setErro("Seleciona um ficheiro de imagem válido.");
+    if (imagens.length + ficheiros.length > 6) {
+      setErro("Podes adicionar no máximo 6 imagens por produto.");
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErro("A imagem não pode ter mais de 5 MB.");
+    const ficheiroInvalido = ficheiros.find(
+      (file) => !file.type.startsWith("image/")
+    );
+
+    if (ficheiroInvalido) {
+      setErro("Seleciona apenas ficheiros de imagem.");
       return;
     }
 
-    const reader = new FileReader();
+    const ficheiroGrande = ficheiros.find(
+      (file) => file.size > 3 * 1024 * 1024
+    );
 
-    reader.onload = () => {
-      setForm((formAtual) => ({
-        ...formAtual,
-        image: reader.result,
-      }));
-      setPreview(reader.result);
+    if (ficheiroGrande) {
+      setErro("Cada imagem pode ter no máximo 3 MB.");
+      return;
+    }
+
+    try {
+      const imagensLidas = await Promise.all(ficheiros.map(lerFicheiro));
+      setImagens((atuais) => [...atuais, ...imagensLidas]);
       setErro("");
-    };
-
-    reader.readAsDataURL(file);
+    } catch (error) {
+      setErro(error.message);
+    }
   }
 
   function handleFileChange(event) {
-    const file = event.target.files?.[0];
-    handleFile(file);
+    adicionarImagens(event.target.files);
+    event.target.value = "";
   }
 
   function handleDrop(event) {
     event.preventDefault();
     event.stopPropagation();
-
-    const file = event.dataTransfer.files?.[0];
-    handleFile(file);
+    adicionarImagens(event.dataTransfer.files);
   }
 
   function handleDragOver(event) {
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  function removerImagem(index) {
+    setImagens((atuais) => atuais.filter((_, posicao) => posicao !== index));
+  }
+
+  function definirImagemPrincipal(index) {
+    setImagens((atuais) => {
+      const copia = [...atuais];
+      const [selecionada] = copia.splice(index, 1);
+      return [selecionada, ...copia];
+    });
   }
 
   function prepararVariantes() {
@@ -307,7 +335,8 @@ function AdicionarProduto() {
         brand: form.brand.trim() || null,
         stock: stockTotal,
         condition: form.condition,
-        image: form.image,
+        image: imagens[0] || null,
+        images: imagens,
         sellerId,
         variants: variantesEnviar,
       };
@@ -652,11 +681,15 @@ function AdicionarProduto() {
             )}
 
             <div className="col-12 mt-4">
-              <label className="form-label">Imagem do Produto</label>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <label className="form-label mb-0">Imagens do Produto</label>
+                <span className="text-muted small">{imagens.length}/6</span>
+              </div>
+
               <div
                 className="border rounded p-4 d-flex flex-column justify-content-center align-items-center"
                 style={{
-                  minHeight: 220,
+                  minHeight: 150,
                   borderStyle: "dashed",
                   cursor: "pointer",
                 }}
@@ -664,36 +697,60 @@ function AdicionarProduto() {
                 onDragOver={handleDragOver}
                 onClick={() => fileInputRef.current?.click()}
               >
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt="Pré-visualização do produto"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: 180,
-                      objectFit: "contain",
-                    }}
-                  />
-                ) : (
-                  <>
-                    <div className="fs-1 text-secondary">↑</div>
-                    <div className="text-center text-muted">
-                      Arrasta a imagem ou clica para procurar
-                    </div>
-                    <div className="text-center text-muted small">
-                      PNG ou JPG até 5 MB
-                    </div>
-                  </>
-                )}
+                <div className="fs-1 text-secondary">↑</div>
+                <div className="text-center text-muted">
+                  Arrasta várias imagens ou clica para procurar
+                </div>
+                <div className="text-center text-muted small">
+                  Até 6 imagens, máximo 3 MB por imagem
+                </div>
 
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   className="d-none"
                   onChange={handleFileChange}
                 />
               </div>
+
+              {imagens.length > 0 && (
+                <div className="row g-3 mt-1">
+                  {imagens.map((imagem, index) => (
+                    <div className="col-6 col-md-4 col-xl-3" key={`${imagem.slice(0, 40)}-${index}`}>
+                      <div className="card h-100">
+                        <img
+                          src={imagem}
+                          alt={`Pré-visualização ${index + 1}`}
+                          className="card-img-top"
+                          style={{ height: 150, objectFit: "cover" }}
+                        />
+                        <div className="card-body p-2">
+                          {index === 0 ? (
+                            <span className="badge bg-primary mb-2">Imagem principal</span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-primary w-100 mb-2"
+                              onClick={() => definirImagemPrincipal(index)}
+                            >
+                              Tornar principal
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger w-100"
+                            onClick={() => removerImagem(index)}
+                          >
+                            Remover
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="col-12 mt-4">

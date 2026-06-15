@@ -2,6 +2,7 @@ const {
   sequelize,
   Product,
   ProductVariant,
+  ProductImage,
   OrderItem,
   Category,
   User,
@@ -17,6 +18,15 @@ const includeProduto = [
     model: ProductVariant,
     separate: true,
     order: [["id", "ASC"]],
+  },
+  {
+    model: ProductImage,
+    as: "productImages",
+    separate: true,
+    order: [
+      ["position", "ASC"],
+      ["id", "ASC"],
+    ],
   },
   {
     model: User,
@@ -90,6 +100,59 @@ function prepararVariantes(variants, fallback = {}) {
   return variantesPreparadas;
 }
 
+function prepararImagens(images, imagemAntiga = null) {
+  let imagensRecebidas = [];
+
+  if (Array.isArray(images)) {
+    imagensRecebidas = images;
+  } else if (imagemAntiga) {
+    imagensRecebidas = [imagemAntiga];
+  }
+
+  if (imagensRecebidas.length > 6) {
+    throw criarErro(400, "Podes adicionar no máximo 6 imagens por produto.");
+  }
+
+  return imagensRecebidas
+    .map((item, index) => {
+      const valor = typeof item === "string" ? item : item?.image;
+
+      return {
+        image: typeof valor === "string" ? valor.trim() : "",
+        position: index,
+        isCover: index === 0,
+      };
+    })
+    .filter((item) => item.image);
+}
+
+async function criarImagensProduto(productId, imagensPreparadas, transaction) {
+  for (const imagem of imagensPreparadas) {
+    await ProductImage.create(
+      {
+        productId,
+        image: imagem.image,
+        position: imagem.position,
+        isCover: imagem.isCover,
+      },
+      { transaction }
+    );
+  }
+}
+
+async function substituirImagensProduto(
+  productId,
+  imagensPreparadas,
+  transaction
+) {
+  await ProductImage.destroy({
+    where: { productId },
+    transaction,
+  });
+
+  await criarImagensProduto(productId, imagensPreparadas, transaction);
+}
+
 /* Listar produtos */
 controllers.listar = async (req, res) => {
   try {
@@ -157,6 +220,7 @@ controllers.criar = async (req, res) => {
       stock,
       condition,
       image,
+      images,
       categoryId,
       sellerId,
       variants,
@@ -184,6 +248,9 @@ controllers.criar = async (req, res) => {
       stock,
     });
 
+    const imagensPreparadas = prepararImagens(images, image);
+    const imagemPrincipal = imagensPreparadas[0]?.image || null;
+
     const primeiraVariante = variantesPreparadas[0];
     const stockTotal = variantesPreparadas.reduce(
       (total, variant) => total + variant.stock,
@@ -208,7 +275,7 @@ controllers.criar = async (req, res) => {
         brand: brand ? String(brand).trim() : null,
         stock: stockTotal,
         condition,
-        image,
+        image: imagemPrincipal,
         categoryId: Number(categoryId),
         sellerId: Number(sellerId),
       },
@@ -223,6 +290,12 @@ controllers.criar = async (req, res) => {
         stock: variant.stock,
       })),
       { transaction }
+    );
+
+    await criarImagensProduto(
+      produto.id,
+      imagensPreparadas,
+      transaction
     );
 
     await transaction.commit();
@@ -294,6 +367,7 @@ controllers.atualizar = async (req, res) => {
       brand,
       condition,
       image,
+      images,
       categoryId,
       size,
       color,
@@ -410,6 +484,22 @@ controllers.atualizar = async (req, res) => {
 
     const primeiraVariante = variantesFinais[0];
 
+    let imagemPrincipal = produto.image;
+
+    if (Array.isArray(images)) {
+      const imagensPreparadas = prepararImagens(images);
+
+      await substituirImagensProduto(
+        produto.id,
+        imagensPreparadas,
+        transaction
+      );
+
+      imagemPrincipal = imagensPreparadas[0]?.image || null;
+    } else if (image !== undefined) {
+      imagemPrincipal = image || null;
+    }
+
     await produto.update(
       {
         name: String(name || produto.name).trim(),
@@ -417,7 +507,7 @@ controllers.atualizar = async (req, res) => {
         price: preco,
         brand: brand ? String(brand).trim() : null,
         condition,
-        image,
+        image: imagemPrincipal,
         categoryId: Number(categoryId),
         size: primeiraVariante.size,
         color: primeiraVariante.color,

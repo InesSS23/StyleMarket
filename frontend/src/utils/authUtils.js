@@ -14,15 +14,19 @@ export function obterUtilizador() {
   const utilizadorLocal = localStorage.getItem("utilizador");
   const utilizadorSessao = sessionStorage.getItem("utilizador");
 
-  if (utilizadorLocal) {
-    return JSON.parse(utilizadorLocal);
+  const dadosGuardados = utilizadorLocal || utilizadorSessao;
+
+  if (!dadosGuardados) {
+    return null;
   }
 
-  if (utilizadorSessao) {
-    return JSON.parse(utilizadorSessao);
+  try {
+    return JSON.parse(dadosGuardados);
+  } catch {
+    localStorage.removeItem("utilizador");
+    sessionStorage.removeItem("utilizador");
+    return null;
   }
-
-  return null;
 }
 
 export function terminarSessao() {
