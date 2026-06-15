@@ -267,11 +267,6 @@ function Registo() {
             </div>
           )}
 
-          <div className="alert alert-secondary small">
-            O acesso de administrador é criado internamente pela plataforma e
-            não está disponível no registo público.
-          </div>
-
           <button
             type="submit"
             className="btn btn-primary w-100 fw-semibold"

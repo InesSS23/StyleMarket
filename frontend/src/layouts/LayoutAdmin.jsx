@@ -1,3 +1,4 @@
+import "../styles/admin.css";
 import { Link, Outlet } from "react-router-dom";
 
 function LayoutAdmin() {
