@@ -28,6 +28,8 @@ import GerirProdutos from "./pages/admin/GerirProdutos";
 import GerirCategorias from "./pages/admin/GerirCategorias";
 import GerirEncomendas from "./pages/admin/GerirEncomendas";
 
+import "./App.css";
+
 function App() {
   return (
     <Router>

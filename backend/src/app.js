@@ -8,7 +8,9 @@ const verificarDadosIniciais = require("./config/dadosIniciais");
 const categoriaRoutes = require("./routes/categoriaRoute");
 const produtoRoutes = require("./routes/produtoRoute");
 const encomendaRoutes = require("./routes/encomendaRoute");
+const userRoutes = require("./routes/userRoute");
 const authRoutes = require("./routes/authRoute");
+const dashboardRoutes = require("./routes/dashboardRoute");
 
 const app = express();
 
@@ -28,7 +30,9 @@ app.get("/", (req, res) => {
 app.use("/categorias", categoriaRoutes);
 app.use("/produtos", produtoRoutes);
 app.use("/encomendas", encomendaRoutes);
+app.use("/utilizadores", userRoutes);
 app.use("/auth", authRoutes);
+app.use("/dashboard", dashboardRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

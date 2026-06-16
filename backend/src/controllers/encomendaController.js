@@ -377,4 +377,42 @@ controllers.listarPorVendedor = async (req, res) => {
   }
 };
 
+controllers.atualizarStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: "Estado da encomenda não foi fornecido.",
+      });
+    }
+
+    const order = await Order.findByPk(id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Encomenda não encontrada.",
+      });
+    }
+
+    order.status = status;
+    await order.save();
+
+    res.json({
+      success: true,
+      message: "Estado da encomenda atualizado com sucesso.",
+      data: order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Erro ao atualizar estado da encomenda.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = controllers;

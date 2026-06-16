@@ -52,8 +52,45 @@ function GerirEncomendas() {
     return new Date(data).toLocaleDateString("pt-PT");
   }
 
+  const [atualizandoId, setAtualizandoId] = useState(null);
+
   function podeAvancar(status) {
     return status === "Pendente" || status === "Paga" || status === "Enviada";
+  }
+
+  function proximoEstado(status) {
+    if (status === "Pendente") return "Paga";
+    if (status === "Paga") return "Enviada";
+    if (status === "Enviada") return "Concluída";
+    return null;
+  }
+
+  async function avancarEncomenda(encomenda) {
+    const novoEstado = proximoEstado(encomenda.status);
+
+    if (!novoEstado) {
+      setErro("Não é possível avançar o estado desta encomenda.");
+      return;
+    }
+
+    setErro("");
+    setAtualizandoId(encomenda.id);
+
+    try {
+      const response = await api.put(`/encomendas/atualizar-status/${encomenda.id}`, {
+        status: novoEstado,
+      });
+
+      if (response.data.success) {
+        carregarEncomendas();
+      } else {
+        setErro(response.data.message || "Erro ao atualizar estado da encomenda.");
+      }
+    } catch (error) {
+      setErro("Erro ao atualizar estado da encomenda.");
+    } finally {
+      setAtualizandoId(null);
+    }
   }
 
   function detalhesEncomenda(encomenda) {
@@ -177,8 +214,12 @@ function GerirEncomendas() {
                       </button>
 
                       {podeAvancar(encomenda.status) && (
-                        <button className="admin-next-button">
-                          ↻ Avançar
+                        <button
+                          className="admin-next-button"
+                          onClick={() => avancarEncomenda(encomenda)}
+                          disabled={atualizandoId === encomenda.id}
+                        >
+                          {atualizandoId === encomenda.id ? "A atualizar..." : "↻ Avançar"}
                         </button>
                       )}
                     </div>

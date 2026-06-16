@@ -1,19 +1,63 @@
-function DashboardAdmin() {
-  const encomendasRecentes = [
-    { numero: "#1001", comprador: "Maria Santos", total: "104.99€", estado: "Concluída" },
-    { numero: "#1002", comprador: "Carlos Oliveira", total: "68.99€", estado: "Enviada" },
-    { numero: "#1003", comprador: "Sofia Rodrigues", total: "167.50€", estado: "Paga" },
-    { numero: "#1004", comprador: "Tiago Mendes", total: "52.00€", estado: "Concluída" },
-    { numero: "#1005", comprador: "Maria Santos", total: "38.00€", estado: "Pendente" },
-  ];
+import { useEffect, useState } from "react";
+import api from "../../services/api";
 
-  const utilizadoresRecentes = [
-    { nome: "João Silva", email: "joao@email.com", perfil: "Vendedor", estado: "Ativo" },
-    { nome: "Maria Santos", email: "maria@email.com", perfil: "Comprador", estado: "Ativo" },
-    { nome: "Pedro Costa", email: "pedro@email.com", perfil: "Vendedor", estado: "Ativo" },
-    { nome: "Ana Ferreira", email: "ana@email.com", perfil: "Vendedor", estado: "Ativo" },
-    { nome: "Carlos Oliveira", email: "carlos@email.com", perfil: "Comprador", estado: "Inativo" },
-  ];
+function DashboardAdmin() {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalProducts: 0,
+    totalVendedores: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    monthlyRevenue: [],
+  });
+  const [encomendasRecentes, setEncomendasRecentes] = useState([]);
+  const [utilizadoresRecentes, setUtilizadoresRecentes] = useState([]);
+
+  useEffect(() => {
+    async function carregarDados() {
+      try {
+        const dashboardResponse = await api.get("/dashboard/stats");
+        if (dashboardResponse.data.success) {
+          setStats(dashboardResponse.data.data);
+        }
+
+        const usersResponse = await api.get("/utilizadores/listar");
+        if (usersResponse.data.success) {
+          const users = usersResponse.data.data;
+          setUtilizadoresRecentes(
+            users
+              .slice(-5)
+              .reverse()
+              .map((user) => ({
+                nome: user.name,
+                email: user.email,
+                perfil: user.role,
+                estado: "Ativo",
+              }))
+          );
+        }
+
+        const ordersResponse = await api.get("/encomendas/listar");
+        if (ordersResponse.data.success) {
+          const orders = ordersResponse.data.data;
+          setEncomendasRecentes(
+            orders
+              .slice(0, 5)
+              .map((order, index) => ({
+                numero: `#${order.id}`,
+                comprador: order.buyer?.name || order.customerName || "N/A",
+                total: `${Number(order.total).toFixed(2)}€`,
+                estado: order.status,
+              }))
+          );
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados do dashboard:", error);
+      }
+    }
+
+    carregarDados();
+  }, []);
 
   function badgeClass(estado) {
     if (estado === "Concluída" || estado === "Ativo") return "admin-badge admin-badge--green";
@@ -22,6 +66,19 @@ function DashboardAdmin() {
     if (estado === "Pendente") return "admin-badge admin-badge--yellow";
     return "admin-badge admin-badge--gray";
   }
+
+  const maxMonthlyRevenue = Math.max(...stats.monthlyRevenue.map((item) => item.revenue), 1);
+  const chartWidth = 1000;
+  const pointStep =
+    stats.monthlyRevenue.length > 1
+      ? chartWidth / (stats.monthlyRevenue.length - 1)
+      : chartWidth;
+  const chartPoints = stats.monthlyRevenue
+    .map(
+      (item, index) =>
+        `${index * pointStep},${200 - (item.revenue / maxMonthlyRevenue) * 150}`
+    )
+    .join(" ");
 
   return (
     <div className="admin-dashboard">
@@ -34,7 +91,7 @@ function DashboardAdmin() {
         <div className="admin-stat-card">
           <div>
             <span>Total de Utilizadores</span>
-            <strong>1.247</strong>
+            <strong>{stats.totalUsers.toLocaleString()}</strong>
           </div>
           <div className="admin-stat-icon admin-stat-icon--blue">👥</div>
         </div>
@@ -42,7 +99,7 @@ function DashboardAdmin() {
         <div className="admin-stat-card">
           <div>
             <span>Total de Produtos</span>
-            <strong>3.542</strong>
+            <strong>{stats.totalProducts.toLocaleString()}</strong>
           </div>
           <div className="admin-stat-icon admin-stat-icon--purple">📦</div>
         </div>
@@ -50,7 +107,7 @@ function DashboardAdmin() {
         <div className="admin-stat-card">
           <div>
             <span>Total de Vendedores</span>
-            <strong>3</strong>
+            <strong>{stats.totalVendedores.toLocaleString()}</strong>
           </div>
           <div className="admin-stat-icon admin-stat-icon--green">🏪</div>
         </div>
@@ -58,7 +115,7 @@ function DashboardAdmin() {
         <div className="admin-stat-card">
           <div>
             <span>Total de Encomendas</span>
-            <strong>8.923</strong>
+            <strong>{stats.totalOrders.toLocaleString()}</strong>
           </div>
           <div className="admin-stat-icon admin-stat-icon--gray">🧾</div>
         </div>
@@ -66,7 +123,7 @@ function DashboardAdmin() {
         <div className="admin-stat-card">
           <div>
             <span>Receita Total</span>
-            <strong>247.8K€</strong>
+            <strong>{stats.totalRevenue.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })}</strong>
           </div>
           <div className="admin-stat-icon admin-stat-icon--green">€</div>
         </div>
@@ -82,14 +139,18 @@ function DashboardAdmin() {
         </div>
 
         <div className="admin-fake-chart">
-          <svg viewBox="0 0 1000 260" preserveAspectRatio="none">
-            <polyline
-              points="0,190 90,175 180,178 270,150 360,160 450,130 540,138 630,110 720,120 810,90 900,70 1000,35"
-              fill="none"
-              stroke="#2563eb"
-              strokeWidth="4"
-            />
-          </svg>
+          {stats.monthlyRevenue.length > 0 ? (
+            <svg viewBox="0 0 1000 260" preserveAspectRatio="none">
+              <polyline
+                points={chartPoints}
+                fill="none"
+                stroke="#2563eb"
+                strokeWidth="4"
+              />
+            </svg>
+          ) : (
+            <div className="admin-chart-empty">Sem dados de vendas.</div>
+          )}
         </div>
       </section>
 
