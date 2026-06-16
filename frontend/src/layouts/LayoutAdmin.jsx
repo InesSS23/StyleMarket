@@ -26,8 +26,13 @@ function LayoutAdmin() {
       <aside className="admin-sidebar">
         <div>
           <div className="admin-logo">
-            <h5>StyleMarket</h5>
-            <small>Painel Admin</small>
+            <h5>
+              StyleMarket
+            </h5>
+
+            <small>
+              Painel Admin
+            </small>
           </div>
 
           <nav className="admin-nav">

@@ -12,6 +12,7 @@ import Catalogo from "./pages/comprador/Catalogo";
 import DetalhesProduto from "./pages/comprador/DetalhesProduto";
 import Carrinho from "./pages/comprador/Carrinho";
 import FinalizarCompra from "./pages/comprador/FinalizarCompra";
+import PerfilComprador from "./pages/comprador/PerfilComprador";
 
 import Login from "./pages/Login";
 import Registo from "./pages/Registo";
@@ -21,6 +22,7 @@ import ProdutosVendedor from "./pages/vendedor/ProdutosVendedor";
 import AdicionarProduto from "./pages/vendedor/AdicionarProduto";
 import EditarProduto from "./pages/vendedor/EditarProduto";
 import VendasVendedor from "./pages/vendedor/VendasVendedor";
+import PerfilVendedor from "./pages/vendedor/PerfilVendedor";
 
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import GerirUtilizadores from "./pages/admin/GerirUtilizadores";
@@ -54,6 +56,15 @@ function App() {
               </RotaProtegida>
             }
           />
+
+          <Route
+            path="perfil"
+            element={
+              <RotaProtegida perfisPermitidos={["comprador"]}>
+                <PerfilComprador />
+              </RotaProtegida>
+            }
+          />
         </Route>
 
         <Route path="/login" element={<Login />} />
@@ -73,6 +84,7 @@ function App() {
           <Route path="adicionar-produto" element={<AdicionarProduto />} />
           <Route path="editar-produto/:id" element={<EditarProduto />} />
           <Route path="vendas" element={<VendasVendedor />} />
+          <Route path="perfil" element={<PerfilVendedor />} />
         </Route>
 
         <Route
