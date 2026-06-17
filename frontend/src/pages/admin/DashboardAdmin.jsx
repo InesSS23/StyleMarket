@@ -134,9 +134,9 @@ function DashboardAdmin() {
         <div className="admin-chart-header">
           <div>
             <h2>Evolução de Vendas</h2>
-            <p>Receita mensal em 2025</p>
+            <p>Receita dos últimos 12 meses</p>
           </div>
-          <span>↗ +23% vs ano anterior</span>
+          <span>Dados reais das encomendas</span>
         </div>
 
         <div className="admin-fake-chart">

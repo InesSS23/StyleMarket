@@ -46,6 +46,7 @@
 
 .admin-content {
   flex: 1;
+  min-width: 0;
   padding: 32px;
 }
 
@@ -134,6 +135,8 @@
 .admin-chart-header {
   display: flex;
   justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
   margin-bottom: 20px;
 }
 
@@ -171,7 +174,7 @@
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 18px;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .admin-table-header {
@@ -677,5 +680,129 @@
   .admin-order-item-values {
     min-width: 0;
     text-align: left;
+  }
+}
+
+/* Responsividade da área administrativa */
+
+@media (max-width: 1280px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-tables-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-products-filter-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 18px;
+    border-right: 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .admin-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+
+  .admin-nav a {
+    flex: 1 1 150px;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+  }
+
+  .admin-sidebar > .d-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 16px;
+  }
+
+  .admin-content {
+    padding: 22px;
+  }
+
+  .admin-filter-card {
+    grid-template-columns: 1fr 240px;
+  }
+
+  .admin-table-card table {
+    min-width: 720px;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-content {
+    padding: 16px;
+  }
+
+  .admin-page-header {
+    margin-bottom: 22px;
+  }
+
+  .admin-page-header h1 {
+    font-size: 1.85rem;
+  }
+
+  .admin-page-header-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-primary-button {
+    width: 100%;
+  }
+
+  .admin-stats-grid,
+  .admin-filter-card,
+  .admin-products-filter-card {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-stat-card,
+  .admin-chart-card {
+    padding: 18px;
+  }
+
+  .admin-table-header {
+    min-width: 620px;
+  }
+
+  .admin-modal-header,
+  .admin-modal-body,
+  .admin-modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-nav {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar > .d-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-order-summary {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-order-pill {
+    justify-content: center;
   }
 }

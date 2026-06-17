@@ -7,45 +7,47 @@ function GerirCategorias() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
 
-  useEffect(() => {
-    let componenteAtivo = true;
+  function carregarCategorias() {
+    setCarregando(true);
+    setErro("");
 
-    Promise.all([
-      api.get("/categorias/listar"),
-      api.get("/produtos/listar"),
-    ])
-      .then(([categoriasResponse, produtosResponse]) => {
-        if (!componenteAtivo) {
-          return;
-        }
-
-        if (categoriasResponse.data.success) {
-          setCategorias(categoriasResponse.data.data);
+    api
+      .get("/categorias/listar")
+      .then((response) => {
+        if (response.data.success) {
+          setCategorias(response.data.data);
         } else {
           setErro("Erro ao carregar categorias.");
-        }
-
-        if (produtosResponse.data.success) {
-          setProdutos(produtosResponse.data.data);
-        } else {
-          setProdutos([]);
         }
       })
       .catch(() => {
-        if (componenteAtivo) {
-          setErro("Erro ao carregar categorias.");
-          setProdutos([]);
-        }
+        setErro("Erro ao carregar categorias.");
       })
       .finally(() => {
-        if (componenteAtivo) {
-          setCarregando(false);
-        }
+        setCarregando(false);
       });
+  }
 
-    return () => {
-      componenteAtivo = false;
-    };
+  function carregarProdutos() {
+    api
+      .get("/produtos/listar")
+      .then((response) => {
+        if (response.data.success) {
+          setProdutos(response.data.data);
+        }
+      })
+      .catch(() => {
+        setProdutos([]);
+      });
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      carregarCategorias();
+      carregarProdutos();
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   function contarProdutosDaCategoria(categoria) {

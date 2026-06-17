@@ -16,20 +16,20 @@ const CATEGORIAS_INICIAIS = [
 const UTILIZADORES_INICIAIS = [
   {
     name: "Vendedor Padrão",
-    email: "vendedor@stylemarket.com",
+    email: "vendedor@s.com",
     password: "1234",
     role: "vendedor",
     storeName: "Loja Padrão",
   },
   {
     name: "Comprador Padrão",
-    email: "comprador@stylemarket.com",
+    email: "comprador@s.com",
     password: "1234",
     role: "comprador",
   },
   {
     name: "Administrador",
-    email: "admin@stylemarket.com",
+    email: "admin@s.com",
     password: "1234",
     role: "admin",
   },

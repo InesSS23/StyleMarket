@@ -228,19 +228,6 @@ function Login() {
               Criar conta
             </button>
           </div>
-
-          <div className="alert alert-secondary small mt-4 mb-0">
-            <strong>Contas de teste:</strong>{" "}
-            <span className="text-danger">
-              (retirar antes da entrega)
-            </span>
-            <br />
-            admin@stylemarket.com / 1234
-            <br />
-            vendedor@stylemarket.com / 1234
-            <br />
-            comprador@stylemarket.com / 1234
-          </div>
         </form>
       </div>
     </div>

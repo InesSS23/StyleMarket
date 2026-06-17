@@ -71,7 +71,7 @@ function Navbar() {
                   title="Perfil"
                 >
                   <img
-                    src="/public/images/perfil.png"
+                    src="/images/perfil.png"
                     alt="Perfil"
                     width="32"
                     height="32"

@@ -647,25 +647,83 @@ controllers.verificarStock = async (req, res) => {
 
 /* Apagar produto */
 controllers.apagar = async (req, res) => {
+  let transaction;
+
   try {
     const { id } = req.params;
 
-    const deleted = await Product.destroy({
-      where: { id },
+    transaction = await sequelize.transaction();
+
+    const produto = await Product.findByPk(id, {
+      transaction,
     });
 
-    if (deleted === 0) {
+    if (!produto) {
+      await transaction.rollback();
+      transaction = null;
+
       return res.status(404).json({
         success: false,
         message: "Produto não encontrado.",
       });
     }
 
+    /*
+      Um produto que já pertence a uma encomenda não deve ser
+      apagado, porque faz parte do histórico da plataforma.
+    */
+    const totalItensEncomenda = await OrderItem.count({
+      where: {
+        productId: produto.id,
+      },
+      transaction,
+    });
+
+    if (totalItensEncomenda > 0) {
+      await transaction.rollback();
+      transaction = null;
+
+      return res.status(409).json({
+        success: false,
+        message:
+          "Este produto não pode ser apagado porque já pertence a uma encomenda.",
+      });
+    }
+
+    /*
+      Primeiro são removidas as imagens e variantes.
+      Depois é removido o produto.
+    */
+    await ProductImage.destroy({
+      where: {
+        productId: produto.id,
+      },
+      transaction,
+    });
+
+    await ProductVariant.destroy({
+      where: {
+        productId: produto.id,
+      },
+      transaction,
+    });
+
+    await produto.destroy({
+      transaction,
+    });
+
+    await transaction.commit();
+    transaction = null;
+
     res.json({
       success: true,
       message: "Produto removido com sucesso.",
     });
   } catch (error) {
+    if (transaction && !transaction.finished) {
+      await transaction.rollback();
+    }
+
     res.status(500).json({
       success: false,
       message: "Erro ao remover produto.",

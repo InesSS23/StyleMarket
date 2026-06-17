@@ -293,3 +293,40 @@ a {
   border-top: 1px solid #e9ecef;
   background-color: #f8f9fa;
 }
+
+
+/* Ajustes responsivos dos layouts reservados */
+
+.layout-dashboard > main {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .sidebar-dashboard {
+    padding: 16px !important;
+  }
+
+  .sidebar-dashboard nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sidebar-dashboard .nav-link {
+    text-align: center;
+  }
+
+  .layout-dashboard > main {
+    padding: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-dashboard nav {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-product-image {
+    width: 76px;
+    height: 76px;
+  }
+}

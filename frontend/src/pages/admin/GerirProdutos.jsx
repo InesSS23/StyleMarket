@@ -10,37 +10,33 @@ function GerirProdutos() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
 
-  useEffect(() => {
-    let componenteAtivo = true;
+  function carregarProdutos() {
+    setCarregando(true);
+    setErro("");
 
     api
       .get("/produtos/listar")
       .then((response) => {
-        if (!componenteAtivo) {
-          return;
-        }
-
         if (response.data.success) {
           setProdutos(response.data.data);
-          setErro("");
         } else {
           setErro("Erro ao carregar produtos.");
         }
       })
       .catch(() => {
-        if (componenteAtivo) {
-          setErro("Erro ao carregar produtos.");
-        }
+        setErro("Erro ao carregar produtos.");
       })
       .finally(() => {
-        if (componenteAtivo) {
-          setCarregando(false);
-        }
+        setCarregando(false);
       });
+  }
 
-    return () => {
-      componenteAtivo = false;
-    };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      carregarProdutos();
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const produtosFiltrados = produtos.filter((produto) => {
