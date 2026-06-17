@@ -3,6 +3,10 @@ import api from "../../services/api";
 
 function GerirProdutos() {
   const [produtos, setProdutos] = useState([]);
+  const [pesquisa, setPesquisa] = useState("");
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
+  const [vendedorSelecionado, setVendedorSelecionado] = useState("");
+  const [estadoSelecionado, setEstadoSelecionado] = useState("");
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
 
@@ -27,6 +31,39 @@ function GerirProdutos() {
         setCarregando(false);
       });
   }
+
+  const produtosFiltrados = produtos.filter((produto) => {
+    const texto = pesquisa.trim().toLowerCase();
+    const categoria = categoriaSelecionada.toLowerCase();
+    const vendedor = vendedorSelecionado.toLowerCase();
+    const estado = estadoSelecionado.toLowerCase();
+
+    const correspondePesquisa =
+      !texto ||
+      produto.name?.toLowerCase().includes(texto) ||
+      produto.brand?.toLowerCase().includes(texto);
+
+    const correspondeCategoria =
+      !categoria ||
+      produto.category?.name?.toLowerCase() === categoria;
+
+    const vendedorNome =
+      produto.seller?.storeName || produto.seller?.name || "";
+    const correspondeVendedor =
+      !vendedor ||
+      vendedorNome.toLowerCase() === vendedor;
+
+    const correspondeEstado =
+      !estado ||
+      produto.condition?.toLowerCase() === estado;
+
+    return (
+      correspondePesquisa &&
+      correspondeCategoria &&
+      correspondeVendedor &&
+      correspondeEstado
+    );
+  });
 
   function imagemProduto(produto) {
     if (produto.image) return produto.image;
@@ -82,37 +119,62 @@ function GerirProdutos() {
         <input
           className="admin-search-input"
           placeholder="Pesquisar por nome ou marca..."
+          value={pesquisa}
+          onChange={(event) => setPesquisa(event.target.value)}
         />
 
-        <select className="admin-select">
-          <option>Todas as Categorias</option>
-          <option>T-shirts</option>
-          <option>Casacos</option>
-          <option>Calças</option>
-          <option>Vestidos</option>
-          <option>Sapatilhas</option>
-          <option>Acessórios</option>
+        <select
+          className="admin-select"
+          value={categoriaSelecionada}
+          onChange={(event) => setCategoriaSelecionada(event.target.value)}
+        >
+          <option value="">Todas as Categorias</option>
+          <option value="t-shirts">T-shirts</option>
+          <option value="casacos">Casacos</option>
+          <option value="calças">Calças</option>
+          <option value="vestidos">Vestidos</option>
+          <option value="sapatilhas">Sapatilhas</option>
+          <option value="acessórios">Acessórios</option>
         </select>
 
-        <select className="admin-select">
-          <option>Todos os Vendedores</option>
-          <option>João Silva</option>
-          <option>Maria Santos</option>
-          <option>Ana Ferreira</option>
+        <select
+          className="admin-select"
+          value={vendedorSelecionado}
+          onChange={(event) => setVendedorSelecionado(event.target.value)}
+        >
+          <option value="">Todos os Vendedores</option>
+          {Array.from(
+            new Set(
+              produtos
+                .map((produto) =>
+                  (produto.seller?.storeName || produto.seller?.name || "")
+                    .trim()
+                )
+                .filter(Boolean)
+            )
+          ).map((vendedor) => (
+            <option key={vendedor} value={vendedor.toLowerCase()}>
+              {vendedor}
+            </option>
+          ))}
         </select>
 
-        <select className="admin-select">
-          <option>Todos os Estados</option>
-          <option>Novo</option>
-          <option>Usado - Como Novo</option>
-          <option>Usado - Bom Estado</option>
+        <select
+          className="admin-select"
+          value={estadoSelecionado}
+          onChange={(event) => setEstadoSelecionado(event.target.value)}
+        >
+          <option value="">Todos os Estados</option>
+          <option value="novo">Novo</option>
+          <option value="usado - como novo">Usado - Como Novo</option>
+          <option value="usado - bom estado">Usado - Bom Estado</option>
         </select>
       </div>
 
       {erro && <div className="alert alert-danger">{erro}</div>}
 
       <p className="admin-results-text">
-        A mostrar {produtos.length} produtos
+        A mostrar {produtosFiltrados.length} produtos
       </p>
 
       <section className="admin-table-card">
@@ -140,7 +202,7 @@ function GerirProdutos() {
             )}
 
             {!carregando &&
-              produtos.map((produto) => (
+              produtosFiltrados.map((produto) => (
                 <tr key={produto.id}>
                   <td>#{produto.id}</td>
 
@@ -200,10 +262,10 @@ function GerirProdutos() {
                 </tr>
               ))}
 
-            {!carregando && produtos.length === 0 && (
+            {!carregando && produtosFiltrados.length === 0 && (
               <tr>
                 <td colSpan="8" className="text-center text-muted">
-                  Ainda não existem produtos registados.
+                  Não existem produtos que correspondam aos filtros.
                 </td>
               </tr>
             )}

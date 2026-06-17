@@ -8,7 +8,8 @@ const verificarDadosIniciais = require("./config/dadosIniciais");
 const categoriaRoutes = require("./routes/categoriaRoute");
 const produtoRoutes = require("./routes/produtoRoute");
 const encomendaRoutes = require("./routes/encomendaRoute");
-const userRoutes = require("./routes/userRoute");
+const dashboardRoutes = require("./routes/dashboardRoute");
+const utilizadorRoutes = require("./routes/utilizadorRoute");
 const authRoutes = require("./routes/authRoute");
 
 const app = express();
@@ -29,7 +30,8 @@ app.get("/", (req, res) => {
 app.use("/categorias", categoriaRoutes);
 app.use("/produtos", produtoRoutes);
 app.use("/encomendas", encomendaRoutes);
-app.use("/utilizadores", userRoutes);
+app.use("/dashboard", dashboardRoutes);
+app.use("/utilizadores", utilizadorRoutes);
 app.use("/auth", authRoutes);
 
 app.use((req, res) => {

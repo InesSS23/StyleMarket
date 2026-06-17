@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../../services/api";
 
 function DashboardAdmin() {
@@ -158,7 +159,7 @@ function DashboardAdmin() {
         <section className="admin-table-card">
           <div className="admin-table-header">
             <h2>Encomendas Recentes</h2>
-            <a href="#">Ver todas →</a>
+            <Link to="/admin/encomendas">Ver todas →</Link>
           </div>
 
           <table>
@@ -186,7 +187,7 @@ function DashboardAdmin() {
         <section className="admin-table-card">
           <div className="admin-table-header">
             <h2>Utilizadores Recentes</h2>
-            <a href="#">Ver todos →</a>
+            <Link to="/admin/utilizadores">Ver todos →</Link>
           </div>
 
           <table>
