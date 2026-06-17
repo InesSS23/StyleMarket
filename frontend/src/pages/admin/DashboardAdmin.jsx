@@ -33,7 +33,7 @@ function DashboardAdmin() {
                 nome: user.name,
                 email: user.email,
                 perfil: user.role,
-                estado: "Ativo",
+                estado: user.isActive === false ? "Inativo" : "Ativo",
               }))
           );
         }
@@ -44,7 +44,7 @@ function DashboardAdmin() {
           setEncomendasRecentes(
             orders
               .slice(0, 5)
-              .map((order, index) => ({
+              .map((order) => ({
                 numero: `#${order.id}`,
                 comprador: order.buyer?.name || order.customerName || "N/A",
                 total: `${Number(order.total).toFixed(2)}€`,
@@ -62,8 +62,8 @@ function DashboardAdmin() {
 
   function badgeClass(estado) {
     if (estado === "Concluída" || estado === "Ativo") return "admin-badge admin-badge--green";
-    if (estado === "Enviada" || estado === "Vendedor") return "admin-badge admin-badge--blue";
-    if (estado === "Paga") return "admin-badge admin-badge--purple";
+    if (estado === "Enviada" || estado === "Vendedor" || estado === "vendedor") return "admin-badge admin-badge--blue";
+    if (estado === "Paga" || estado === "Administrador" || estado === "admin") return "admin-badge admin-badge--purple";
     if (estado === "Pendente") return "admin-badge admin-badge--yellow";
     return "admin-badge admin-badge--gray";
   }

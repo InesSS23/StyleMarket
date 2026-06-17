@@ -11,26 +11,37 @@ function GerirProdutos() {
   const [carregando, setCarregando] = useState(false);
 
   useEffect(() => {
-    carregarProdutos();
-  }, []);
-
-  function carregarProdutos() {
-    setCarregando(true);
+    let componenteAtivo = true;
 
     api
       .get("/produtos/listar")
       .then((response) => {
+        if (!componenteAtivo) {
+          return;
+        }
+
         if (response.data.success) {
           setProdutos(response.data.data);
+          setErro("");
+        } else {
+          setErro("Erro ao carregar produtos.");
         }
       })
       .catch(() => {
-        setErro("Erro ao carregar produtos.");
+        if (componenteAtivo) {
+          setErro("Erro ao carregar produtos.");
+        }
       })
       .finally(() => {
-        setCarregando(false);
+        if (componenteAtivo) {
+          setCarregando(false);
+        }
       });
-  }
+
+    return () => {
+      componenteAtivo = false;
+    };
+  }, []);
 
   const produtosFiltrados = produtos.filter((produto) => {
     const texto = pesquisa.trim().toLowerCase();
@@ -49,13 +60,12 @@ function GerirProdutos() {
 
     const vendedorNome =
       produto.seller?.storeName || produto.seller?.name || "";
+
     const correspondeVendedor =
-      !vendedor ||
-      vendedorNome.toLowerCase() === vendedor;
+      !vendedor || vendedorNome.toLowerCase() === vendedor;
 
     const correspondeEstado =
-      !estado ||
-      produto.condition?.toLowerCase() === estado;
+      !estado || produto.condition?.toLowerCase() === estado;
 
     return (
       correspondePesquisa &&
@@ -65,46 +75,124 @@ function GerirProdutos() {
     );
   });
 
-  function imagemProduto(produto) {
-    if (produto.image) return produto.image;
+  const categorias = Array.from(
+    new Set(
+      produtos
+        .map((produto) => produto.category?.name)
+        .filter(Boolean)
+    )
+  );
 
-    return "/images/produtos/tshirt-branca.jpg";
+  const vendedores = Array.from(
+    new Set(
+      produtos
+        .map(
+          (produto) =>
+            produto.seller?.storeName || produto.seller?.name
+        )
+        .filter(Boolean)
+    )
+  );
+
+  function imagemProduto(produto) {
+    if (produto.productImages?.length > 0) {
+      const imagensOrdenadas = [...produto.productImages].sort(
+        (a, b) => Number(a.position || 0) - Number(b.position || 0)
+      );
+
+      if (imagensOrdenadas[0]?.image) {
+        return imagensOrdenadas[0].image;
+      }
+    }
+
+    if (produto.image) {
+      return produto.image;
+    }
+
+    return "/images/produtos/sem-imagem.jpg";
+  }
+
+  function calcularStock(produto) {
+    if (produto.productVariants?.length > 0) {
+      return produto.productVariants.reduce(
+        (total, variante) =>
+          total + Number(variante.stock || 0),
+        0
+      );
+    }
+
+    return Number(produto.stock || 0);
   }
 
   function formatarPreco(valor) {
-    return `${Number(valor || 0).toFixed(2)}€`;
+    return `${Number(valor || 0).toFixed(2)} €`;
   }
 
   function estadoClass(estado) {
-    if (estado === "Novo") return "admin-badge admin-badge--green";
-    if (estado === "Usado - Como Novo") return "admin-badge admin-badge--blue";
-    if (estado === "Usado - Bom Estado") return "admin-badge admin-badge--yellow";
+    if (estado === "Novo") {
+      return "admin-badge admin-badge--green";
+    }
+
+    if (estado === "Usado - Como Novo") {
+      return "admin-badge admin-badge--blue";
+    }
+
+    if (estado === "Usado - Bom Estado") {
+      return "admin-badge admin-badge--yellow";
+    }
 
     return "admin-badge admin-badge--gray";
   }
 
-  function apagarProduto(id) {
-    if (!window.confirm("Tens a certeza que queres apagar este produto?")) return;
+  function apagarProduto(produto) {
+    if (
+      !window.confirm(
+        `Tens a certeza que queres apagar o produto ${produto.name}?`
+      )
+    ) {
+      return;
+    }
 
     api
-      .delete(`/produtos/apagar/${id}`)
+      .delete(`/produtos/apagar/${produto.id}`)
       .then((response) => {
         if (response.data.success) {
-          carregarProdutos();
+          setProdutos((listaAtual) =>
+            listaAtual.filter((item) => item.id !== produto.id)
+          );
+          setErro("");
         } else {
-          alert("Não foi possível apagar o produto.");
+          window.alert("Não foi possível apagar o produto.");
         }
       })
-      .catch(() => {
-        alert("Erro ao apagar produto.");
+      .catch((error) => {
+        window.alert(
+          error.response?.data?.message ||
+            "Erro ao apagar produto."
+        );
       });
   }
 
   function verProduto(produto) {
-    alert(
-      `Produto: ${produto.name}\nMarca: ${produto.brand || "Sem marca"}\nPreço: ${formatarPreco(
-        produto.price
-      )}\nStock: ${produto.stock}`
+    const variantes = produto.productVariants || [];
+    const imagens = produto.productImages || [];
+
+    window.alert(
+      `Produto #${produto.id}\n` +
+        `Nome: ${produto.name}\n` +
+        `Marca: ${produto.brand || "Sem marca"}\n` +
+        `Categoria: ${produto.category?.name || "Sem categoria"}\n` +
+        `Vendedor: ${
+          produto.seller?.storeName ||
+          produto.seller?.name ||
+          "Sem vendedor"
+        }\n` +
+        `Preço: ${formatarPreco(produto.price)}\n` +
+        `Stock total: ${calcularStock(produto)}\n` +
+        `Estado: ${produto.condition || "Não indicado"}\n` +
+        `Variantes: ${variantes.length}\n` +
+        `Imagens: ${imagens.length || (produto.image ? 1 : 0)}\n` +
+        `Descrição: ${produto.description || "Sem descrição"}`
     );
   }
 
@@ -112,7 +200,7 @@ function GerirProdutos() {
     <div className="admin-dashboard">
       <div className="admin-page-header">
         <h1>Gestão de Produtos</h1>
-        <p>Gere todos os produtos publicados na plataforma.</p>
+        <p>Consulta e remove produtos publicados na plataforma.</p>
       </div>
 
       <div className="admin-products-filter-card">
@@ -126,34 +214,36 @@ function GerirProdutos() {
         <select
           className="admin-select"
           value={categoriaSelecionada}
-          onChange={(event) => setCategoriaSelecionada(event.target.value)}
+          onChange={(event) =>
+            setCategoriaSelecionada(event.target.value)
+          }
         >
           <option value="">Todas as Categorias</option>
-          <option value="t-shirts">T-shirts</option>
-          <option value="casacos">Casacos</option>
-          <option value="calças">Calças</option>
-          <option value="vestidos">Vestidos</option>
-          <option value="sapatilhas">Sapatilhas</option>
-          <option value="acessórios">Acessórios</option>
+
+          {categorias.map((categoria) => (
+            <option
+              key={categoria}
+              value={categoria.toLowerCase()}
+            >
+              {categoria}
+            </option>
+          ))}
         </select>
 
         <select
           className="admin-select"
           value={vendedorSelecionado}
-          onChange={(event) => setVendedorSelecionado(event.target.value)}
+          onChange={(event) =>
+            setVendedorSelecionado(event.target.value)
+          }
         >
           <option value="">Todos os Vendedores</option>
-          {Array.from(
-            new Set(
-              produtos
-                .map((produto) =>
-                  (produto.seller?.storeName || produto.seller?.name || "")
-                    .trim()
-                )
-                .filter(Boolean)
-            )
-          ).map((vendedor) => (
-            <option key={vendedor} value={vendedor.toLowerCase()}>
+
+          {vendedores.map((vendedor) => (
+            <option
+              key={vendedor}
+              value={vendedor.toLowerCase()}
+            >
               {vendedor}
             </option>
           ))}
@@ -162,12 +252,18 @@ function GerirProdutos() {
         <select
           className="admin-select"
           value={estadoSelecionado}
-          onChange={(event) => setEstadoSelecionado(event.target.value)}
+          onChange={(event) =>
+            setEstadoSelecionado(event.target.value)
+          }
         >
           <option value="">Todos os Estados</option>
           <option value="novo">Novo</option>
-          <option value="usado - como novo">Usado - Como Novo</option>
-          <option value="usado - bom estado">Usado - Bom Estado</option>
+          <option value="usado - como novo">
+            Usado - Como Novo
+          </option>
+          <option value="usado - bom estado">
+            Usado - Bom Estado
+          </option>
         </select>
       </div>
 
@@ -208,12 +304,17 @@ function GerirProdutos() {
 
                   <td>
                     <div className="admin-product-cell">
-                      <img src={imagemProduto(produto)} alt={produto.name} />
+                      <img
+                        src={imagemProduto(produto)}
+                        alt={produto.name}
+                      />
                       <strong>{produto.name}</strong>
                     </div>
                   </td>
 
-                  <td>{produto.category?.name || "Sem categoria"}</td>
+                  <td>
+                    {produto.category?.name || "Sem categoria"}
+                  </td>
 
                   <td>
                     {produto.seller?.storeName ||
@@ -225,35 +326,30 @@ function GerirProdutos() {
                     <strong>{formatarPreco(produto.price)}</strong>
                   </td>
 
-                  <td>{produto.stock}</td>
+                  <td>{calcularStock(produto)}</td>
 
                   <td>
                     <span className={estadoClass(produto.condition)}>
-                      {produto.condition}
+                      {produto.condition || "Não indicado"}
                     </span>
                   </td>
 
                   <td>
                     <div className="admin-action-buttons">
                       <button
+                        type="button"
                         className="admin-action admin-action--blue"
+                        title="Ver detalhes do produto"
                         onClick={() => verProduto(produto)}
                       >
                         👁
                       </button>
 
                       <button
-                        className="admin-action admin-action--dark"
-                        onClick={() =>
-                          alert("A edição de produtos pode ser feita no painel do vendedor.")
-                        }
-                      >
-                        ✎
-                      </button>
-
-                      <button
+                        type="button"
                         className="admin-action admin-action--red"
-                        onClick={() => apagarProduto(produto.id)}
+                        title="Apagar produto"
+                        onClick={() => apagarProduto(produto)}
                       >
                         🗑
                       </button>

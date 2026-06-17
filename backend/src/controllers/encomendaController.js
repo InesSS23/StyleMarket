@@ -382,10 +382,24 @@ controllers.atualizarStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!status) {
+    const estadosPermitidos = [
+      "Pendente",
+      "Paga",
+      "Enviada",
+      "Concluída",
+      "Cancelada",
+    ];
+
+    const transicoesPermitidas = {
+      Pendente: "Paga",
+      Paga: "Enviada",
+      Enviada: "Concluída",
+    };
+
+    if (!status || !estadosPermitidos.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "Estado da encomenda não foi fornecido.",
+        message: "Estado da encomenda inválido.",
       });
     }
 
@@ -395,6 +409,15 @@ controllers.atualizarStatus = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Encomenda não encontrada.",
+      });
+    }
+
+    const proximoEstado = transicoesPermitidas[order.status];
+
+    if (!proximoEstado || status !== proximoEstado) {
+      return res.status(400).json({
+        success: false,
+        message: `A encomenda no estado ${order.status} não pode passar diretamente para ${status}.`,
       });
     }
 

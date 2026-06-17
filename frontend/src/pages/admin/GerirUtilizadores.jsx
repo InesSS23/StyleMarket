@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 
 function GerirUtilizadores() {
@@ -9,29 +9,39 @@ function GerirUtilizadores() {
   const [erro, setErro] = useState("");
 
   useEffect(() => {
-    async function carregarUtilizadores() {
-      setCarregando(true);
-      setErro("");
+    let componenteAtivo = true;
 
-      try {
-        const response = await api.get("/utilizadores/listar");
+    api
+      .get("/utilizadores/listar")
+      .then((response) => {
+        if (!componenteAtivo) {
+          return;
+        }
 
         if (response.data.success) {
           setUtilizadores(response.data.data);
+          setErro("");
         } else {
           setErro("Erro ao carregar utilizadores.");
         }
-      } catch (error) {
-        setErro(
-          error.response?.data?.message ||
-            "Erro ao carregar utilizadores."
-        );
-      } finally {
-        setCarregando(false);
-      }
-    }
+      })
+      .catch((error) => {
+        if (componenteAtivo) {
+          setErro(
+            error.response?.data?.message ||
+              "Erro ao carregar utilizadores."
+          );
+        }
+      })
+      .finally(() => {
+        if (componenteAtivo) {
+          setCarregando(false);
+        }
+      });
 
-    carregarUtilizadores();
+    return () => {
+      componenteAtivo = false;
+    };
   }, []);
 
   const utilizadoresFiltrados = useMemo(() => {
@@ -46,83 +56,72 @@ function GerirUtilizadores() {
         user.storeName?.toLowerCase().includes(texto);
 
       const correspondePerfil =
-        !perfil ||
-        user.role?.toLowerCase() === perfil;
+        !perfil || user.role?.toLowerCase() === perfil;
 
       return correspondePesquisa && correspondePerfil;
     });
   }, [utilizadores, pesquisa, perfilSelecionado]);
 
   function perfilClass(perfil) {
-    if (perfil?.toLowerCase() === "vendedor") return "admin-badge admin-badge--blue";
-    if (perfil?.toLowerCase() === "admin") return "admin-badge admin-badge--purple";
+    if (perfil?.toLowerCase() === "vendedor") {
+      return "admin-badge admin-badge--blue";
+    }
+
+    if (perfil?.toLowerCase() === "admin") {
+      return "admin-badge admin-badge--purple";
+    }
+
     return "admin-badge admin-badge--gray";
   }
 
-  async function editarUtilizador(user) {
-    const novoNome = window.prompt("Nome do utilizador:", user.name);
-    if (novoNome === null) return;
-
-    const novoEmail = window.prompt("Email do utilizador:", user.email);
-    if (novoEmail === null) return;
-
-    const novoPerfil = window.prompt(
-      "Perfil: comprador, vendedor ou admin",
-      user.role
-    );
-    if (novoPerfil === null) return;
-
-    const perfilFinal = ["comprador", "vendedor", "admin"].includes(
-      novoPerfil.trim().toLowerCase()
-    )
-      ? novoPerfil.trim().toLowerCase()
-      : user.role;
-
-    try {
-      const response = await api.put(`/utilizadores/atualizar/${user.id}`, {
-        name: novoNome,
-        email: novoEmail,
-        role: perfilFinal,
-        storeName:
-          perfilFinal === "vendedor"
-            ? window.prompt(
-                "Nome público do vendedor ou da loja:",
-                user.storeName || user.name
-              ) || user.storeName || ""
-            : null,
-        storeDescription: user.storeDescription || "",
-        storeContact: user.storeContact || "",
-      });
-
-      if (response.data.success) {
-        carregarUtilizadores();
-      } else {
-        window.alert(response.data.message || "Erro ao atualizar usuário.");
-      }
-    } catch (error) {
-      window.alert(
-        error.response?.data?.message ||
-          "Erro ao atualizar utilizador."
-      );
+  function estadoClass(ativo) {
+    if (ativo) {
+      return "admin-badge admin-badge--green";
     }
+
+    return "admin-badge admin-badge--gray";
+  }
+
+  function nomePerfil(perfil) {
+    if (perfil === "admin") {
+      return "Administrador";
+    }
+
+    if (perfil === "vendedor") {
+      return "Vendedor";
+    }
+
+    return "Comprador";
   }
 
   async function alterarEstado(user) {
-    if (!window.confirm(`Deseja ${user.isActive ? "desativar" : "ativar"} este usuário?`)) {
+    const acao = user.isActive ? "desativar" : "ativar";
+
+    if (!window.confirm(`Deseja ${acao} este utilizador?`)) {
       return;
     }
 
     try {
-      const response = await api.patch(`/utilizadores/alterar-estado/${user.id}`);
+      const response = await api.patch(
+        `/utilizadores/alterar-estado/${user.id}`
+      );
+
       if (response.data.success) {
-        carregarUtilizadores();
+        setUtilizadores((listaAtual) =>
+          listaAtual.map((item) =>
+            item.id === user.id ? response.data.data : item
+          )
+        );
+        setErro("");
       } else {
-        window.alert(response.data.message || "Erro ao alterar estado.");
+        window.alert(
+          response.data.message || "Erro ao alterar o estado."
+        );
       }
     } catch (error) {
       window.alert(
         error.response?.data?.message ||
-          "Erro ao alterar estado do utilizador."
+          "Erro ao alterar o estado do utilizador."
       );
     }
   }
@@ -133,11 +132,19 @@ function GerirUtilizadores() {
     }
 
     try {
-      const response = await api.delete(`/utilizadores/apagar/${user.id}`);
+      const response = await api.delete(
+        `/utilizadores/apagar/${user.id}`
+      );
+
       if (response.data.success) {
-        carregarUtilizadores();
+        setUtilizadores((listaAtual) =>
+          listaAtual.filter((item) => item.id !== user.id)
+        );
+        setErro("");
       } else {
-        window.alert(response.data.message || "Erro ao apagar utilizador.");
+        window.alert(
+          response.data.message || "Erro ao apagar utilizador."
+        );
       }
     } catch (error) {
       window.alert(
@@ -148,44 +155,42 @@ function GerirUtilizadores() {
   }
 
   function verUtilizador(user) {
+    const detalhesLoja =
+      user.role === "vendedor"
+        ? `\nNome da loja: ${user.storeName || "Não indicado"}` +
+          `\nContacto: ${user.storeContact || "Não indicado"}` +
+          `\nDescrição: ${
+            user.storeDescription || "Não indicada"
+          }`
+        : "";
+
     window.alert(
       `Utilizador #${user.id}\n` +
         `Nome: ${user.name}\n` +
         `Email: ${user.email}\n` +
-        `Perfil: ${
-          user.role === "admin"
-            ? "Administrador"
-            : user.role === "vendedor"
-            ? "Vendedor"
-            : "Comprador"
-        }\n` +
+        `Perfil: ${nomePerfil(user.role)}\n` +
         `Estado: ${user.isActive ? "Ativo" : "Inativo"}\n` +
-        `Registado em: ${new Date(user.createdAt).toLocaleDateString("pt-PT")}`
+        `Registado em: ${new Date(user.createdAt).toLocaleDateString(
+          "pt-PT"
+        )}` +
+        detalhesLoja
     );
-  }
-
-  function perfilClass(perfil) {
-    if (perfil === "Vendedor") return "admin-badge admin-badge--blue";
-    if (perfil === "Administrador") return "admin-badge admin-badge--purple";
-    return "admin-badge admin-badge--gray";
-  }
-
-  function estadoClass(estado) {
-    if (estado === "Ativo") return "admin-badge admin-badge--green";
-    return "admin-badge admin-badge--gray";
   }
 
   return (
     <div className="admin-dashboard">
       <div className="admin-page-header">
         <h1>Gestão de Utilizadores</h1>
-        <p>Gere todos os utilizadores registados na plataforma.</p>
+        <p>
+          Consulta, ativa ou desativa e remove utilizadores da
+          plataforma.
+        </p>
       </div>
 
       <div className="admin-filter-card">
         <input
           type="text"
-          placeholder="Pesquisar por nome ou email..."
+          placeholder="Pesquisar por nome, loja ou email..."
           className="admin-search-input"
           value={pesquisa}
           onChange={(event) => setPesquisa(event.target.value)}
@@ -248,22 +253,20 @@ function GerirUtilizadores() {
 
                   <td>
                     <span className={perfilClass(user.role)}>
-                      {user.role === "admin"
-                        ? "Administrador"
-                        : user.role === "vendedor"
-                        ? "Vendedor"
-                        : "Comprador"}
+                      {nomePerfil(user.role)}
                     </span>
                   </td>
 
                   <td>
-                    <span className={estadoClass(user.isActive ? "Ativo" : "Inativo") }>
+                    <span className={estadoClass(user.isActive)}>
                       {user.isActive ? "Ativo" : "Inativo"}
                     </span>
                   </td>
 
                   <td>
-                    {new Date(user.createdAt).toLocaleDateString("pt-PT")}
+                    {new Date(user.createdAt).toLocaleDateString(
+                      "pt-PT"
+                    )}
                   </td>
 
                   <td>
@@ -276,22 +279,20 @@ function GerirUtilizadores() {
                       >
                         👁
                       </button>
-                      <button
-                        type="button"
-                        className="admin-action admin-action--dark"
-                        title="Editar utilizador"
-                        onClick={() => editarUtilizador(user)}
-                      >
-                        ✎
-                      </button>
+
                       <button
                         type="button"
                         className="admin-action admin-action--yellow"
-                        title={user.isActive ? "Desativar utilizador" : "Ativar utilizador"}
+                        title={
+                          user.isActive
+                            ? "Desativar utilizador"
+                            : "Ativar utilizador"
+                        }
                         onClick={() => alterarEstado(user)}
                       >
                         ⊘
                       </button>
+
                       <button
                         type="button"
                         className="admin-action admin-action--red"

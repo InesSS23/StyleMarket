@@ -8,40 +8,45 @@ function GerirCategorias() {
   const [carregando, setCarregando] = useState(false);
 
   useEffect(() => {
-    carregarCategorias();
-    carregarProdutos();
-  }, []);
+    let componenteAtivo = true;
 
-  function carregarCategorias() {
-    setCarregando(true);
+    Promise.all([
+      api.get("/categorias/listar"),
+      api.get("/produtos/listar"),
+    ])
+      .then(([categoriasResponse, produtosResponse]) => {
+        if (!componenteAtivo) {
+          return;
+        }
 
-    api
-      .get("/categorias/listar")
-      .then((response) => {
-        if (response.data.success) {
-          setCategorias(response.data.data);
+        if (categoriasResponse.data.success) {
+          setCategorias(categoriasResponse.data.data);
+        } else {
+          setErro("Erro ao carregar categorias.");
+        }
+
+        if (produtosResponse.data.success) {
+          setProdutos(produtosResponse.data.data);
+        } else {
+          setProdutos([]);
         }
       })
       .catch(() => {
-        setErro("Erro ao carregar categorias.");
+        if (componenteAtivo) {
+          setErro("Erro ao carregar categorias.");
+          setProdutos([]);
+        }
       })
       .finally(() => {
-        setCarregando(false);
-      });
-  }
-
-  function carregarProdutos() {
-    api
-      .get("/produtos/listar")
-      .then((response) => {
-        if (response.data.success) {
-          setProdutos(response.data.data);
+        if (componenteAtivo) {
+          setCarregando(false);
         }
-      })
-      .catch(() => {
-        setProdutos([]);
       });
-  }
+
+    return () => {
+      componenteAtivo = false;
+    };
+  }, []);
 
   function contarProdutosDaCategoria(categoria) {
     return produtos.filter(
@@ -55,68 +60,119 @@ function GerirCategorias() {
   function obterIcone(nome) {
     const nomeFormatado = nome.toLowerCase();
 
-    if (nomeFormatado.includes("t-shirt") || nomeFormatado.includes("shirt")) return "👕";
-    if (nomeFormatado.includes("casaco")) return "🧥";
-    if (nomeFormatado.includes("calça")) return "👖";
-    if (nomeFormatado.includes("vestido")) return "👗";
-    if (nomeFormatado.includes("sapatilha")) return "👟";
-    if (nomeFormatado.includes("acessório") || nomeFormatado.includes("acessorio")) return "🎒";
+    if (
+      nomeFormatado.includes("t-shirt") ||
+      nomeFormatado.includes("shirt") ||
+      nomeFormatado.includes("camisola") ||
+      nomeFormatado.includes("blusa")
+    ) {
+      return "👕";
+    }
+
+    if (nomeFormatado.includes("casaco")) {
+      return "🧥";
+    }
+
+    if (nomeFormatado.includes("calça")) {
+      return "👖";
+    }
+
+    if (
+      nomeFormatado.includes("vestido") ||
+      nomeFormatado.includes("saia")
+    ) {
+      return "👗";
+    }
+
+    if (nomeFormatado.includes("sapatilha")) {
+      return "👟";
+    }
+
+    if (
+      nomeFormatado.includes("acessório") ||
+      nomeFormatado.includes("acessorio")
+    ) {
+      return "🎒";
+    }
 
     return "🏷️";
   }
 
   function adicionarCategoria() {
     const nome = window.prompt("Nome da nova categoria:");
+    const nomeFinal = nome?.trim();
 
-    if (!nome || !nome.trim()) return;
+    if (!nomeFinal) {
+      return;
+    }
+
+    const categoriaExistente = categorias.some(
+      (categoria) =>
+        categoria.name.trim().toLowerCase() ===
+        nomeFinal.toLowerCase()
+    );
+
+    if (categoriaExistente) {
+      window.alert("Já existe uma categoria com esse nome.");
+      return;
+    }
 
     api
-      .post("/categorias/criar", { name: nome.trim() })
+      .post("/categorias/criar", { name: nomeFinal })
       .then((response) => {
         if (response.data.success) {
-          carregarCategorias();
+          setCategorias((listaAtual) => [
+            ...listaAtual,
+            response.data.data,
+          ]);
+          setErro("");
         } else {
-          alert("Não foi possível criar a categoria.");
+          window.alert("Não foi possível criar a categoria.");
         }
       })
-      .catch(() => {
-        alert("Erro ao criar categoria.");
+      .catch((error) => {
+        window.alert(
+          error.response?.data?.message ||
+            "Erro ao criar categoria."
+        );
       });
   }
 
-  function editarCategoria(categoria) {
-    const novoNome = window.prompt("Editar nome da categoria:", categoria.name);
+  function apagarCategoria(categoria) {
+    const numeroProdutos = contarProdutosDaCategoria(categoria);
 
-    if (!novoNome || !novoNome.trim()) return;
+    if (numeroProdutos > 0) {
+      window.alert(
+        `Não podes apagar esta categoria porque tem ${numeroProdutos} produto(s) associado(s).`
+      );
+      return;
+    }
 
-    api
-      .put(`/categorias/atualizar/${categoria.id}`, { name: novoNome.trim() })
-      .then((response) => {
-        if (response.data.success) {
-          carregarCategorias();
-        } else {
-          alert("Não foi possível atualizar a categoria.");
-        }
-      })
-      .catch(() => {
-        alert("Erro ao atualizar categoria.");
-      });
-  }
-
-  function apagarCategoria(id) {
-    if (!window.confirm("Tens a certeza que queres apagar esta categoria?")) return;
+    if (
+      !window.confirm(
+        `Tens a certeza que queres apagar a categoria ${categoria.name}?`
+      )
+    ) {
+      return;
+    }
 
     api
-      .delete(`/categorias/apagar/${id}`)
+      .delete(`/categorias/apagar/${categoria.id}`)
       .then((response) => {
         if (response.data.success) {
-          carregarCategorias();
+          setCategorias((listaAtual) =>
+            listaAtual.filter((item) => item.id !== categoria.id)
+          );
+          setErro("");
         } else {
-          alert("Não foi possível apagar a categoria.");
+          window.alert("Não foi possível apagar a categoria.");
         }
       })
-      .catch(() => {
-        alert("Erro ao apagar categoria.");
+      .catch((error) => {
+        window.alert(
+          error.response?.data?.message ||
+            "Erro ao apagar categoria."
+        );
       });
   }
 
@@ -125,10 +181,14 @@ function GerirCategorias() {
       <div className="admin-page-header admin-page-header-row">
         <div>
           <h1>Gestão de Categorias</h1>
-          <p>Cria e gere as categorias de produtos da plataforma.</p>
+          <p>Adiciona e remove categorias de produtos.</p>
         </div>
 
-        <button className="admin-primary-button" onClick={adicionarCategoria}>
+        <button
+          type="button"
+          className="admin-primary-button"
+          onClick={adicionarCategoria}
+        >
           + Adicionar Categoria
         </button>
       </div>
@@ -160,27 +220,28 @@ function GerirCategorias() {
               categorias.map((categoria) => (
                 <tr key={categoria.id}>
                   <td>#{categoria.id}</td>
-                  <td className="admin-category-icon">{obterIcone(categoria.name)}</td>
+
+                  <td className="admin-category-icon">
+                    {obterIcone(categoria.name)}
+                  </td>
+
                   <td>
                     <strong>{categoria.name}</strong>
                   </td>
+
                   <td>
                     <span className="admin-badge admin-badge--blue">
                       {contarProdutosDaCategoria(categoria)} produtos
                     </span>
                   </td>
+
                   <td>
                     <div className="admin-action-buttons">
                       <button
-                        className="admin-action admin-action--blue"
-                        onClick={() => editarCategoria(categoria)}
-                      >
-                        ✎
-                      </button>
-
-                      <button
+                        type="button"
                         className="admin-action admin-action--red"
-                        onClick={() => apagarCategoria(categoria.id)}
+                        title="Apagar categoria"
+                        onClick={() => apagarCategoria(categoria)}
                       >
                         🗑
                       </button>
