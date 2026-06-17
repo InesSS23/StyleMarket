@@ -1,12 +1,12 @@
 
-Loja	           Email	                      Palavra-passe
+# Loja	           Email	                      Palavra-passe
 Urban Thread	   marta.oliveira@example.com	  1234
 Aurora Boutique	   beatriz.martins@example.com	  1234
 North Denim	       tiago.ferreira@example.com	  1234
 Minimal Studio	   sofia.almeida@example.com	  1234
 Loop Accessories   ricardo.costa@example.com	  1234
 
-contas modelo:  backend/src/config/dadosIniciais
+# contas modelo:  backend/src/config/dadosIniciais
 vendedor@s.com    1234
 comprador@s.com   1234
 admin@s.com       1234
@@ -67,20 +67,3 @@ A aplicação possui três perfis: comprador, vendedor e administrador.
 ## Endereço do backend no frontend
 Para desenvolvimento local, o frontend usa:
 http://localhost:3000
-
-
-## Verificações antes da entrega
-
-No frontend:
-```bash
-npm run lint
-npm run build
-```
-
-Também devem ser testados:
-- registo e login dos diferentes perfis;
-- carrinho e finalização de encomendas;
-- criação e edição de produtos pelo vendedor;
-- atualização de stock;
-- gestão administrativa;
-- apresentação em computador, tablet e telemóvel.
