@@ -277,7 +277,11 @@ function GerirUtilizadores() {
                         title="Ver detalhes do utilizador"
                         onClick={() => verUtilizador(user)}
                       >
-                        👁
+                        <img
+                          src="/images/olho.png"
+                          alt=""
+                          className="admin-action-icon"
+                        />
                       </button>
 
                       <button
@@ -290,7 +294,11 @@ function GerirUtilizadores() {
                         }
                         onClick={() => alterarEstado(user)}
                       >
-                        ⊘
+                        <img
+                          src="/images/bloqueado.png"
+                          alt=""
+                          className="admin-action-icon"
+                        />
                       </button>
 
                       <button
@@ -299,7 +307,11 @@ function GerirUtilizadores() {
                         title="Apagar utilizador"
                         onClick={() => apagarUtilizador(user)}
                       >
-                        🗑
+                        <img
+                          src="/images/lixo.png"
+                          alt=""
+                          className="admin-action-icon"
+                        />
                       </button>
                     </div>
                   </td>

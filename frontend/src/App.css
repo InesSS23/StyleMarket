@@ -218,6 +218,22 @@
   border-top: 1px solid #e5e7eb;
 }
 
+.vendor-icon-button {
+  width: 34px;
+  height: 32px;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vendor-action-icon {
+  width: 17px;
+  height: 17px;
+  display: block;
+  object-fit: contain;
+}
+
 .vendor-results-info {
   margin-bottom: 1rem;
   color: #4b5563;

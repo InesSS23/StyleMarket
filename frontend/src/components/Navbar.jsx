@@ -52,20 +52,20 @@ function Navbar() {
 
             {(!utilizador ||
               utilizador.role === "comprador") && (
-              <li className="nav-item">
-                <Link
-                  className="nav-link"
-                  to="/carrinho"
-                >
-                  Carrinho
-                </Link>
-              </li>
-            )}
+                <li className="nav-item ms-lg-2">
+                  <Link
+                    className="nav-link"
+                    to="/carrinho"
+                  >
+                    Carrinho
+                  </Link>
+                </li>
+              )}
 
             {utilizador?.role === "comprador" && (
               <li className="nav-item ms-lg-2">
                 <Link
-                  className="nav-link d-flex align-items-center justify-content-center p-1"
+                  className="nav-link navbar-icon-link d-flex align-items-center justify-content-center p-1"
                   to="/perfil"
                   aria-label="Abrir perfil"
                   title="Perfil"
@@ -73,11 +73,7 @@ function Navbar() {
                   <img
                     src="/images/perfil.png"
                     alt="Perfil"
-                    width="32"
-                    height="32"
-                    style={{
-                      objectFit: "contain",
-                    }}
+                    className="navbar-menu-icon"
                   />
                 </Link>
               </li>

@@ -310,7 +310,12 @@ function GerirEncomendas() {
                         className="admin-details-button"
                         onClick={() => setEncomendaSelecionada(encomenda)}
                       >
-                        👁 Detalhes
+                        <img
+                          src="/images/olho.png"
+                          alt=""
+                          className="admin-details-icon"
+                        />
+                        Detalhes
                       </button>
 
                       {podeAvancar(encomenda.status) && (

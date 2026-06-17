@@ -1,12 +1,7 @@
 import { Link } from "react-router-dom";
-import { adicionarAoCarrinho } from "../utils/carrinhoUtils";
-import { obterUtilizador } from "../utils/authUtils";
 import { obterImagensProduto } from "../utils/produtoUtils";
 
 function ProductCard({ produto }) {
-  const utilizador = obterUtilizador();
-  const podeComprar = !utilizador || utilizador.role === "comprador";
-
   const variantes = produto.productVariants || [];
   const imagemPrincipal = obterImagensProduto(produto)[0];
 
@@ -19,13 +14,7 @@ function ProductCard({ produto }) {
       : Number(produto.stock || 0);
 
   const esgotado = stockTotal <= 0;
-  const temVariasOpcoes = variantes.length > 1;
   const varianteUnica = variantes.length === 1 ? variantes[0] : null;
-
-  function handleAdicionarCarrinho() {
-    const resultado = adicionarAoCarrinho(produto, varianteUnica);
-    alert(resultado.message);
-  }
 
   return (
     <div
@@ -73,31 +62,13 @@ function ProductCard({ produto }) {
           {Number(produto.price).toFixed(2)} €
         </h5>
 
-        <div className="mt-auto d-grid gap-2">
-          <Link to={`/produto/${produto.id}`} className="btn btn-outline-dark">
+        <div className="mt-auto d-grid">
+          <Link
+            to={`/produto/${produto.id}`}
+            className="btn btn-primary"
+          >
             Ver detalhes
           </Link>
-
-          {podeComprar && esgotado && (
-            <button className="btn btn-secondary" disabled>
-              Produto esgotado
-            </button>
-          )}
-
-          {podeComprar && !esgotado && temVariasOpcoes && (
-            <Link to={`/produto/${produto.id}`} className="btn btn-primary">
-              Escolher opções
-            </Link>
-          )}
-
-          {podeComprar && !esgotado && !temVariasOpcoes && (
-            <button
-              className="btn btn-primary"
-              onClick={handleAdicionarCarrinho}
-            >
-              Adicionar ao carrinho
-            </button>
-          )}
         </div>
       </div>
     </div>

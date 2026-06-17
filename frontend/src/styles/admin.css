@@ -324,6 +324,14 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  padding: 4px;
+}
+
+.admin-action-icon {
+  width: 17px;
+  height: 17px;
+  display: block;
+  object-fit: contain;
 }
 
 .admin-action--blue {
@@ -463,12 +471,23 @@
 
 .admin-details-button {
   border: 1px solid #2563eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   color: #2563eb;
   background: #ffffff;
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+.admin-details-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  object-fit: contain;
 }
 
 .admin-next-button {

@@ -346,10 +346,16 @@ function ProdutosVendedor() {
 
                         <button
                           type="button"
-                          className="btn btn-sm btn-outline-danger"
+                          className="btn btn-sm btn-outline-danger vendor-icon-button"
+                          title="Apagar produto"
+                          aria-label="Apagar produto"
                           onClick={() => apagarProduto(produto.id)}
                         >
-                          Apagar
+                          <img
+                            src="/images/lixo.png"
+                            alt=""
+                            className="vendor-action-icon"
+                          />
                         </button>
                       </div>
                     </td>

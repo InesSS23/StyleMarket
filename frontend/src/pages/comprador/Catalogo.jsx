@@ -104,10 +104,6 @@ function Catalogo() {
           <div className="card-body p-4 p-md-5">
             <div className="row align-items-center g-4">
               <div className="col-lg-7">
-                <span className="badge bg-primary-subtle text-primary mb-3">
-                  Catálogo
-                </span>
-
                 <h1 className="fw-bold mb-2">
                   Encontra a tua próxima peça
                 </h1>
@@ -248,27 +244,17 @@ function Catalogo() {
           </div>
 
           <div className="col-lg-9">
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-              <div>
-                <h4 className="fw-bold mb-1">
-                  Produtos disponíveis
-                </h4>
+            <div className="mb-4">
+              <h4 className="fw-bold mb-1">
+                Produtos disponíveis
+              </h4>
 
-                <p className="text-muted mb-0">
-                  {produtosFiltrados.length}{" "}
-                  {produtosFiltrados.length === 1
-                    ? "produto encontrado"
-                    : "produtos encontrados"}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                className="btn btn-outline-primary"
-                onClick={carregarProdutos}
-              >
-                Atualizar catálogo
-              </button>
+              <p className="text-muted mb-0">
+                {produtosFiltrados.length}{" "}
+                {produtosFiltrados.length === 1
+                  ? "produto encontrado"
+                  : "produtos encontrados"}
+              </p>
             </div>
 
             {!erro && produtosFiltrados.length === 0 && (

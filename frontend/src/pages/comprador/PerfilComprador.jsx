@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import api from "../../services/api";
 import {
@@ -98,10 +98,6 @@ function PerfilComprador() {
         style={{ maxWidth: "900px" }}
       >
         <div className="mb-4">
-          <span className="badge bg-primary-subtle text-primary mb-3">
-            Área do comprador
-          </span>
-
           <h1 className="fw-bold mb-2">
             O meu perfil
           </h1>
@@ -222,14 +218,7 @@ function PerfilComprador() {
 
                 <hr className="my-4" />
 
-                <div className="d-flex flex-column flex-sm-row gap-2 justify-content-between">
-                  <Link
-                    to="/catalogo"
-                    className="btn btn-outline-primary"
-                  >
-                    Voltar ao catálogo
-                  </Link>
-
+                <div className="d-flex justify-content-end">
                   <button
                     type="button"
                     className="btn btn-outline-danger"

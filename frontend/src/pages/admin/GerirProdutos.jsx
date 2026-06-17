@@ -338,7 +338,11 @@ function GerirProdutos() {
                         title="Ver detalhes do produto"
                         onClick={() => verProduto(produto)}
                       >
-                        👁
+                        <img
+                          src="/images/olho.png"
+                          alt=""
+                          className="admin-action-icon"
+                        />
                       </button>
 
                       <button
@@ -347,7 +351,11 @@ function GerirProdutos() {
                         title="Apagar produto"
                         onClick={() => apagarProduto(produto)}
                       >
-                        🗑
+                        <img
+                          src="/images/lixo.png"
+                          alt=""
+                          className="admin-action-icon"
+                        />
                       </button>
                     </div>
                   </td>

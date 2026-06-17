@@ -245,7 +245,11 @@ function GerirCategorias() {
                         title="Apagar categoria"
                         onClick={() => apagarCategoria(categoria)}
                       >
-                        🗑
+                        <img
+                          src="/images/lixo.png"
+                          alt=""
+                          className="admin-action-icon"
+                        />
                       </button>
                     </div>
                   </td>
