@@ -54,6 +54,13 @@ function LayoutVendedor() {
           >
             Vendas
           </Link>
+
+          <Link
+            className="nav-link text-white"
+            to="/vendedor/perfil"
+          >
+            Perfil da Loja
+          </Link>
         </nav>
 
         <div className="mt-auto pt-4 d-grid gap-2">

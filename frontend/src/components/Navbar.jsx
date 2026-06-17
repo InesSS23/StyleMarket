@@ -1,44 +1,17 @@
-import { Link, useNavigate } from "react-router-dom";
-import {
-  obterUtilizador,
-  terminarSessao,
-} from "../utils/authUtils";
-import {
-  limparCarrinhoVisitante,
-} from "../utils/carrinhoUtils";
+import { Link } from "react-router-dom";
+
+import { obterUtilizador } from "../utils/authUtils";
 
 function Navbar() {
-  const navigate = useNavigate();
   const utilizador = obterUtilizador();
-
-  function obterNomeApresentado() {
-    if (!utilizador) {
-      return "";
-    }
-
-    if (utilizador.role === "vendedor") {
-      return utilizador.storeName || utilizador.name;
-    }
-
-    return utilizador.name;
-  }
-
-  function handleLogout() {
-    /*
-      O carrinho da conta do comprador permanece guardado.
-      O carrinho do visitante fica sempre vazio após logout.
-    */
-    limparCarrinhoVisitante();
-    terminarSessao();
-
-    navigate("/", { replace: true });
-    window.location.reload();
-  }
 
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
       <div className="container">
-        <Link className="navbar-brand fw-bold" to="/">
+        <Link
+          className="navbar-brand fw-bold"
+          to="/"
+        >
           StyleMarket
         </Link>
 
@@ -60,13 +33,19 @@ function Navbar() {
         >
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
             <li className="nav-item">
-              <Link className="nav-link" to="/">
+              <Link
+                className="nav-link"
+                to="/"
+              >
                 Início
               </Link>
             </li>
 
             <li className="nav-item">
-              <Link className="nav-link" to="/catalogo">
+              <Link
+                className="nav-link"
+                to="/catalogo"
+              >
                 Catálogo
               </Link>
             </li>
@@ -79,6 +58,27 @@ function Navbar() {
                   to="/carrinho"
                 >
                   Carrinho
+                </Link>
+              </li>
+            )}
+
+            {utilizador?.role === "comprador" && (
+              <li className="nav-item ms-lg-2">
+                <Link
+                  className="nav-link d-flex align-items-center justify-content-center p-1"
+                  to="/perfil"
+                  aria-label="Abrir perfil"
+                  title="Perfil"
+                >
+                  <img
+                    src="/public/images/perfil.png"
+                    alt="Perfil"
+                    width="32"
+                    height="32"
+                    style={{
+                      objectFit: "contain",
+                    }}
+                  />
                 </Link>
               </li>
             )}
@@ -105,14 +105,6 @@ function Navbar() {
               </li>
             )}
 
-            {utilizador && (
-              <li className="nav-item ms-lg-3">
-                <span className="badge bg-light text-dark border px-3 py-2">
-                  {obterNomeApresentado()}
-                </span>
-              </li>
-            )}
-
             {!utilizador && (
               <>
                 <li className="nav-item ms-lg-3">
@@ -133,17 +125,6 @@ function Navbar() {
                   </Link>
                 </li>
               </>
-            )}
-
-            {utilizador && (
-              <li className="nav-item ms-lg-2">
-                <button
-                  className="btn btn-outline-danger"
-                  onClick={handleLogout}
-                >
-                  Sair
-                </button>
-              </li>
             )}
           </ul>
         </div>
