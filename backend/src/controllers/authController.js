@@ -83,6 +83,7 @@ controllers.registar = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isActive: user.isActive,
         storeName: user.storeName,
         storeDescription: user.storeDescription,
         storeContact: user.storeContact,
@@ -131,6 +132,13 @@ controllers.login = async (req, res) => {
       });
     }
 
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Esta conta encontra-se desativada.",
+      });
+    }
+
     res.json({
       success: true,
       message: "Login efetuado com sucesso.",
@@ -139,6 +147,7 @@ controllers.login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isActive: user.isActive,
         storeName: user.storeName,
         storeDescription: user.storeDescription,
         storeContact: user.storeContact,

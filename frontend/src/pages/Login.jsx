@@ -230,7 +230,10 @@ function Login() {
           </div>
 
           <div className="alert alert-secondary small mt-4 mb-0">
-            <strong>Contas de teste:</strong>
+            <strong>Contas de teste:</strong>{" "}
+            <span className="text-danger">
+              (retirar antes da entrega)
+            </span>
             <br />
             admin@stylemarket.com / 1234
             <br />

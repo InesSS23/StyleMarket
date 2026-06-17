@@ -24,6 +24,12 @@ const User = sequelize.define("user", {
     defaultValue: "comprador",
   },
 
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true,
+  },
+
   storeName: {
     type: DataTypes.STRING,
     allowNull: true,

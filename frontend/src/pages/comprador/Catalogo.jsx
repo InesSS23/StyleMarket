@@ -28,6 +28,7 @@ function Catalogo() {
 
   useEffect(() => {
     const timer = setTimeout(carregarProdutos, 0);
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -60,7 +61,13 @@ function Catalogo() {
     ),
   ];
 
-  const estados = [...new Set(produtos.map((produto) => produto.condition))];
+  const estados = [
+    ...new Set(
+      produtos
+        .map((produto) => produto.condition)
+        .filter(Boolean)
+    ),
+  ];
 
   const produtosFiltrados = produtos.filter((produto) => {
     const variantes = produto.productVariants || [];
@@ -71,14 +78,16 @@ function Catalogo() {
 
     const correspondeCategoria =
       categoria === "" ||
-      (produto.category && produto.category.name === categoria);
+      produto.category?.name === categoria;
 
     const correspondeTamanho =
       tamanho === "" ||
       produto.size === tamanho ||
       variantes.some((variante) => variante.size === tamanho);
 
-    const correspondeEstado = estado === "" || produto.condition === estado;
+    const correspondeEstado =
+      estado === "" ||
+      produto.condition === estado;
 
     return (
       correspondePesquisa &&
@@ -99,7 +108,9 @@ function Catalogo() {
                   Catálogo
                 </span>
 
-                <h1 className="fw-bold mb-2">Encontra a tua próxima peça</h1>
+                <h1 className="fw-bold mb-2">
+                  Encontra a tua próxima peça
+                </h1>
 
                 <p className="text-muted mb-0">
                   Explora roupas disponíveis na StyleMarket, filtra por
@@ -109,13 +120,18 @@ function Catalogo() {
 
               <div className="col-lg-5">
                 <div className="catalog-search-box">
-                  <label className="form-label fw-medium">Pesquisar</label>
+                  <label className="form-label fw-medium">
+                    Pesquisar
+                  </label>
+
                   <input
                     type="text"
                     className="form-control form-control-lg"
                     placeholder="Pesquisar produto..."
                     value={pesquisa}
-                    onChange={(event) => setPesquisa(event.target.value)}
+                    onChange={(event) =>
+                      setPesquisa(event.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -123,16 +139,23 @@ function Catalogo() {
           </div>
         </div>
 
-        {erro && <div className="alert alert-danger">{erro}</div>}
+        {erro && (
+          <div className="alert alert-danger">
+            {erro}
+          </div>
+        )}
 
         <div className="row g-4">
           <div className="col-lg-3">
             <div className="card border-0 shadow-sm catalog-filter-card">
               <div className="card-body p-4">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h5 className="fw-bold mb-0">Filtros</h5>
+                  <h5 className="fw-bold mb-0">
+                    Filtros
+                  </h5>
 
                   <button
+                    type="button"
                     className="btn btn-sm btn-outline-secondary"
                     onClick={limparFiltros}
                   >
@@ -141,15 +164,26 @@ function Catalogo() {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label fw-medium">Categoria</label>
+                  <label className="form-label fw-medium">
+                    Categoria
+                  </label>
+
                   <select
                     className="form-select"
                     value={categoria}
-                    onChange={(event) => setCategoria(event.target.value)}
+                    onChange={(event) =>
+                      setCategoria(event.target.value)
+                    }
                   >
-                    <option value="">Todas</option>
+                    <option value="">
+                      Todas
+                    </option>
+
                     {categorias.map((item) => (
-                      <option value={item} key={item}>
+                      <option
+                        value={item}
+                        key={item}
+                      >
                         {item}
                       </option>
                     ))}
@@ -157,40 +191,57 @@ function Catalogo() {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label fw-medium">Tamanho</label>
+                  <label className="form-label fw-medium">
+                    Tamanho
+                  </label>
+
                   <select
                     className="form-select"
                     value={tamanho}
-                    onChange={(event) => setTamanho(event.target.value)}
+                    onChange={(event) =>
+                      setTamanho(event.target.value)
+                    }
                   >
-                    <option value="">Todos</option>
+                    <option value="">
+                      Todos
+                    </option>
+
                     {tamanhos.map((item) => (
-                      <option value={item} key={item}>
+                      <option
+                        value={item}
+                        key={item}
+                      >
                         {item}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div className="mb-4">
-                  <label className="form-label fw-medium">Estado</label>
+                <div>
+                  <label className="form-label fw-medium">
+                    Estado
+                  </label>
+
                   <select
                     className="form-select"
                     value={estado}
-                    onChange={(event) => setEstado(event.target.value)}
+                    onChange={(event) =>
+                      setEstado(event.target.value)
+                    }
                   >
-                    <option value="">Todos</option>
+                    <option value="">
+                      Todos
+                    </option>
+
                     {estados.map((item) => (
-                      <option value={item} key={item}>
+                      <option
+                        value={item}
+                        key={item}
+                      >
                         {item}
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div className="catalog-filter-info">
-                  <p className="mb-1 fw-medium">Produtos encontrados</p>
-                  <h4 className="fw-bold mb-0">{produtosFiltrados.length}</h4>
                 </div>
               </div>
             </div>
@@ -199,7 +250,10 @@ function Catalogo() {
           <div className="col-lg-9">
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
               <div>
-                <h4 className="fw-bold mb-1">Produtos disponíveis</h4>
+                <h4 className="fw-bold mb-1">
+                  Produtos disponíveis
+                </h4>
+
                 <p className="text-muted mb-0">
                   {produtosFiltrados.length}{" "}
                   {produtosFiltrados.length === 1
@@ -209,6 +263,7 @@ function Catalogo() {
               </div>
 
               <button
+                type="button"
                 className="btn btn-outline-primary"
                 onClick={carregarProdutos}
               >
@@ -219,12 +274,19 @@ function Catalogo() {
             {!erro && produtosFiltrados.length === 0 && (
               <div className="card border-0 shadow-sm">
                 <div className="card-body p-5 text-center">
-                  <h4 className="fw-bold mb-2">Nenhum produto encontrado</h4>
+                  <h4 className="fw-bold mb-2">
+                    Nenhum produto encontrado
+                  </h4>
+
                   <p className="text-muted mb-4">
                     Experimenta alterar os filtros ou limpar a pesquisa.
                   </p>
 
-                  <button className="btn btn-primary" onClick={limparFiltros}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={limparFiltros}
+                  >
                     Limpar filtros
                   </button>
                 </div>
@@ -233,7 +295,10 @@ function Catalogo() {
 
             <div className="row g-4">
               {produtosFiltrados.map((produto) => (
-                <div className="col-md-6 col-xl-4" key={produto.id}>
+                <div
+                  className="col-md-6 col-xl-4"
+                  key={produto.id}
+                >
                   <ProductCard produto={produto} />
                 </div>
               ))}

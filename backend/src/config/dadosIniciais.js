@@ -2,9 +2,13 @@ const { Category, User } = require("../models");
 
 const CATEGORIAS_INICIAIS = [
   "T-shirts",
+  "Camisolas",
+  "Blusas",
   "Casacos",
   "Calças",
+  "Saias",
   "Vestidos",
+  "Conjuntos",
   "Sapatilhas",
   "Acessórios",
 ];
@@ -34,14 +38,20 @@ const UTILIZADORES_INICIAIS = [
 async function verificarDadosIniciais() {
   for (const nome of CATEGORIAS_INICIAIS) {
     await Category.findOrCreate({
-      where: { name: nome },
-      defaults: { name: nome },
+      where: {
+        name: nome,
+      },
+      defaults: {
+        name: nome,
+      },
     });
   }
 
   for (const utilizador of UTILIZADORES_INICIAIS) {
     await User.findOrCreate({
-      where: { email: utilizador.email },
+      where: {
+        email: utilizador.email,
+      },
       defaults: utilizador,
     });
   }

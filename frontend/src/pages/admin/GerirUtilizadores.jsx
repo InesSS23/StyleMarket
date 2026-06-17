@@ -1,66 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
-import api from "../../services/api";
-
 function GerirUtilizadores() {
-  const [utilizadores, setUtilizadores] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [perfilFiltro, setPerfilFiltro] = useState("Todos");
-  const [erro, setErro] = useState("");
-  const [carregando, setCarregando] = useState(false);
+  const utilizadores = [
+    { id: 1, inicial: "J", nome: "João Silva", email: "joao@email.com", perfil: "Vendedor", estado: "Ativo", data: "15/01/2025" },
+    { id: 2, inicial: "M", nome: "Maria Santos", email: "maria@email.com", perfil: "Comprador", estado: "Ativo", data: "20/02/2025" },
+    { id: 3, inicial: "P", nome: "Pedro Costa", email: "pedro@email.com", perfil: "Vendedor", estado: "Ativo", data: "10/03/2025" },
+    { id: 4, inicial: "A", nome: "Ana Ferreira", email: "ana@email.com", perfil: "Vendedor", estado: "Ativo", data: "05/11/2024" },
+    { id: 5, inicial: "C", nome: "Carlos Oliveira", email: "carlos@email.com", perfil: "Comprador", estado: "Inativo", data: "01/04/2025" },
+    { id: 6, inicial: "S", nome: "Sofia Rodrigues", email: "sofia@email.com", perfil: "Comprador", estado: "Ativo", data: "02/05/2025" },
+    { id: 7, inicial: "A", nome: "Admin StyleMarket", email: "admin@stylemarket.com", perfil: "Administrador", estado: "Ativo", data: "01/01/2024" },
+  ];
 
-  useEffect(() => {
-    carregarUtilizadores();
-  }, []);
-
-  function carregarUtilizadores() {
-    setCarregando(true);
-    setErro("");
-
-    api
-      .get("/utilizadores/listar")
-      .then((response) => {
-        if (response.data.success) {
-          setUtilizadores(response.data.data);
-        } else {
-          setErro("Não foi possível carregar os utilizadores.");
-        }
-      })
-      .catch(() => {
-        setErro("Erro ao carregar os utilizadores.");
-      })
-      .finally(() => {
-        setCarregando(false);
-      });
-  }
-
-  const utilizadoresFiltrados = useMemo(() => {
-    const pesquisa = searchTerm.trim().toLowerCase();
-
-    return utilizadores.filter((user) => {
-      const correspondePesquisa =
-        !pesquisa ||
-        user.name.toLowerCase().includes(pesquisa) ||
-        user.email.toLowerCase().includes(pesquisa);
-
-      const correspondePerfil =
-        perfilFiltro === "Todos" ||
-        (perfilFiltro === "Administrador" && user.role === "admin") ||
-        (perfilFiltro === "Vendedor" && user.role === "vendedor") ||
-        (perfilFiltro === "Comprador" && user.role === "comprador");
-
-      return correspondePesquisa && correspondePerfil;
-    });
-  }, [utilizadores, searchTerm, perfilFiltro]);
-
-  function perfilClass(role) {
-    if (role === "admin") return "admin-badge admin-badge--purple";
-    if (role === "vendedor") return "admin-badge admin-badge--blue";
+  function perfilClass(perfil) {
+    if (perfil === "Vendedor") return "admin-badge admin-badge--blue";
+    if (perfil === "Administrador") return "admin-badge admin-badge--purple";
     return "admin-badge admin-badge--gray";
   }
 
-  function formatarData(data) {
-    if (!data) return "-";
-    return new Date(data).toLocaleDateString("pt-PT");
+  function estadoClass(estado) {
+    if (estado === "Ativo") return "admin-badge admin-badge--green";
+    return "admin-badge admin-badge--gray";
   }
 
   return (
@@ -73,28 +30,22 @@ function GerirUtilizadores() {
       <div className="admin-filter-card">
         <input
           type="text"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
           placeholder="Pesquisar por nome ou email..."
           className="admin-search-input"
+          value={pesquisa}
+          onChange={(event) => setPesquisa(event.target.value)}
         />
 
-        <select
-          className="admin-select"
-          value={perfilFiltro}
-          onChange={(event) => setPerfilFiltro(event.target.value)}
-        >
-          <option>Todos</option>
+        <select className="admin-select">
+          <option>Todos os Perfis</option>
           <option>Administrador</option>
           <option>Vendedor</option>
           <option>Comprador</option>
         </select>
       </div>
 
-      {erro && <div className="alert alert-danger">{erro}</div>}
-
       <p className="admin-results-text">
-        A mostrar {utilizadoresFiltrados.length} de {utilizadores.length} utilizadores
+        A mostrar {utilizadores.length} utilizadores
       </p>
 
       <section className="admin-table-card">
@@ -112,64 +63,43 @@ function GerirUtilizadores() {
           </thead>
 
           <tbody>
-            {carregando && (
-              <tr>
-                <td colSpan="7" className="text-center text-muted">
-                  A carregar utilizadores...
+            {utilizadores.map((user) => (
+              <tr key={user.id}>
+                <td>#{user.id}</td>
+
+                <td>
+                  <div className="admin-user-cell">
+                    <span className="admin-avatar">{user.inicial}</span>
+                    <span>{user.nome}</span>
+                  </div>
+                </td>
+
+                <td>{user.email}</td>
+
+                <td>
+                  <span className={perfilClass(user.perfil)}>
+                    {user.perfil}
+                  </span>
+                </td>
+
+                <td>
+                  <span className={estadoClass(user.estado)}>
+                    {user.estado}
+                  </span>
+                </td>
+
+                <td>{user.data}</td>
+
+                <td>
+                  <div className="admin-action-buttons">
+                    <button className="admin-action admin-action--blue">👁</button>
+                    <button className="admin-action admin-action--dark">✎</button>
+                    <button className="admin-action admin-action--yellow">⊘</button>
+                    <button className="admin-action admin-action--red">🗑</button>
+                  </div>
                 </td>
               </tr>
-            )}
-
-            {!carregando &&
-              utilizadoresFiltrados.map((user) => (
-                <tr key={user.id}>
-                  <td>#{user.id}</td>
-
-                  <td>
-                    <div className="admin-user-cell">
-                      <span className="admin-avatar">
-                        {user.name?.charAt(0).toUpperCase()}
-                      </span>
-                      <span>{user.name}</span>
-                    </div>
-                  </td>
-
-                  <td>{user.email}</td>
-
-                  <td>
-                    <span className={perfilClass(user.role)}>
-                      {user.role === "admin"
-                        ? "Administrador"
-                        : user.role === "vendedor"
-                        ? "Vendedor"
-                        : "Comprador"}
-                    </span>
-                  </td>
-
-                  <td>
-                    <span className="admin-badge admin-badge--green">Ativo</span>
-                  </td>
-
-                  <td>{formatarData(user.createdAt)}</td>
-
-                  <td>
-                    <div className="admin-action-buttons">
-                      <button className="admin-action admin-action--blue">👁</button>
-                      <button className="admin-action admin-action--dark">✎</button>
-                      <button className="admin-action admin-action--yellow">⊘</button>
-                      <button className="admin-action admin-action--red">🗑</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-
-            {!carregando && utilizadoresFiltrados.length === 0 && (
-              <tr>
-                <td colSpan="7" className="text-center text-muted">
-                  Nenhum utilizador encontrado.
-                </td>
-              </tr>
-            )}
+            ))}
           </tbody>
         </table>
       </section>

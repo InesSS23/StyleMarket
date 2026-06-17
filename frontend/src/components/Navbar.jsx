@@ -11,6 +11,18 @@ function Navbar() {
   const navigate = useNavigate();
   const utilizador = obterUtilizador();
 
+  function obterNomeApresentado() {
+    if (!utilizador) {
+      return "";
+    }
+
+    if (utilizador.role === "vendedor") {
+      return utilizador.storeName || utilizador.name;
+    }
+
+    return utilizador.name;
+  }
+
   function handleLogout() {
     /*
       O carrinho da conta do comprador permanece guardado.
@@ -93,21 +105,17 @@ function Navbar() {
               </li>
             )}
 
-            <li className="nav-item ms-lg-3">
-              {utilizador ? (
+            {utilizador && (
+              <li className="nav-item ms-lg-3">
                 <span className="badge bg-light text-dark border px-3 py-2">
-                  {utilizador.name} · {utilizador.role}
+                  {obterNomeApresentado()}
                 </span>
-              ) : (
-                <span className="badge bg-light text-secondary border px-3 py-2">
-                  Sem sessão iniciada
-                </span>
-              )}
-            </li>
+              </li>
+            )}
 
             {!utilizador && (
               <>
-                <li className="nav-item ms-lg-2">
+                <li className="nav-item ms-lg-3">
                   <Link
                     className="btn btn-outline-dark"
                     to="/login"
