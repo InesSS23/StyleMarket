@@ -94,7 +94,13 @@ function DashboardAdmin() {
             <span>Total de Utilizadores</span>
             <strong>{stats.totalUsers.toLocaleString()}</strong>
           </div>
-          <div className="admin-stat-icon admin-stat-icon--blue">👥</div>
+          <div className="admin-stat-icon admin-stat-icon--blue">
+            <img
+              src="/images/utilizadores.png"
+              alt=""
+              aria-hidden="true"
+            />
+          </div>
         </div>
 
         <div className="admin-stat-card">
@@ -102,7 +108,13 @@ function DashboardAdmin() {
             <span>Total de Produtos</span>
             <strong>{stats.totalProducts.toLocaleString()}</strong>
           </div>
-          <div className="admin-stat-icon admin-stat-icon--purple">📦</div>
+          <div className="admin-stat-icon admin-stat-icon--purple">
+            <img
+              src="/images/total_produtos.png"
+              alt=""
+              aria-hidden="true"
+            />
+          </div>
         </div>
 
         <div className="admin-stat-card">
@@ -110,7 +122,13 @@ function DashboardAdmin() {
             <span>Total de Vendedores</span>
             <strong>{stats.totalVendedores.toLocaleString()}</strong>
           </div>
-          <div className="admin-stat-icon admin-stat-icon--green">🏪</div>
+          <div className="admin-stat-icon admin-stat-icon--green">
+            <img
+              src="/images/total_vendedores.png"
+              alt=""
+              aria-hidden="true"
+            />
+          </div>
         </div>
 
         <div className="admin-stat-card">
@@ -118,7 +136,13 @@ function DashboardAdmin() {
             <span>Total de Encomendas</span>
             <strong>{stats.totalOrders.toLocaleString()}</strong>
           </div>
-          <div className="admin-stat-icon admin-stat-icon--gray">🧾</div>
+          <div className="admin-stat-icon admin-stat-icon--gray">
+            <img
+              src="/images/total_encomendas.png"
+              alt=""
+              aria-hidden="true"
+            />
+          </div>
         </div>
 
         <div className="admin-stat-card">
@@ -126,7 +150,13 @@ function DashboardAdmin() {
             <span>Receita Total</span>
             <strong>{stats.totalRevenue.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })}</strong>
           </div>
-          <div className="admin-stat-icon admin-stat-icon--green">€</div>
+          <div className="admin-stat-icon admin-stat-icon--green">
+            <img
+              src="/images/Receita_total.png"
+              alt=""
+              aria-hidden="true"
+            />
+          </div>
         </div>
       </div>
 
@@ -134,7 +164,7 @@ function DashboardAdmin() {
         <div className="admin-chart-header">
           <div>
             <h2>Evolução de Vendas</h2>
-            <p>Receita dos últimos 12 meses</p>
+            <p>Receita dos últimos 3 meses</p>
           </div>
           <span>Dados reais das encomendas</span>
         </div>

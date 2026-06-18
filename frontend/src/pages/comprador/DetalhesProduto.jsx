@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import api from "../../services/api";
 import { adicionarAoCarrinho } from "../../utils/carrinhoUtils";
 import { obterUtilizador } from "../../utils/authUtils";
@@ -53,9 +53,6 @@ function DetalhesProduto() {
       <div className="container py-5">
         <div className="alert alert-danger">{erro}</div>
 
-        <Link to="/catalogo" className="btn btn-outline-dark">
-          Voltar ao catálogo
-        </Link>
       </div>
     );
   }
@@ -127,9 +124,6 @@ function DetalhesProduto() {
 
   return (
     <div className="container py-5">
-      <Link to="/catalogo" className="btn btn-outline-dark mb-4">
-        Voltar ao catálogo
-      </Link>
 
       <div className="row g-5">
         <div className="col-md-6">

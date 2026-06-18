@@ -31,7 +31,7 @@ controllers.stats = async (req, res) => {
     const tableName = Order.getTableName();
 
     /*
-      Receita dos últimos 12 meses, sem encomendas canceladas.
+      Receita dos últimos 3 meses, sem encomendas canceladas.
     */
     const monthlyRevenue = await sequelize.query(
       `SELECT
@@ -40,7 +40,7 @@ controllers.stats = async (req, res) => {
        FROM "${tableName}"
        WHERE "status" <> 'Cancelada'
          AND "createdAt" >=
-           date_trunc('month', CURRENT_DATE) - INTERVAL '11 months'
+           date_trunc('month', CURRENT_DATE) - INTERVAL '2 months'
        GROUP BY month
        ORDER BY month ASC`,
       {
@@ -66,10 +66,10 @@ controllers.stats = async (req, res) => {
 
     const monthlyData = Array.from(
       {
-        length: 12,
+        length: 3,
       },
       (_, index) => {
-        const monthOffset = now.getMonth() - 11 + index;
+        const monthOffset = now.getMonth() - 2 + index;
         const year =
           now.getFullYear() + Math.floor(monthOffset / 12);
         const month = ((monthOffset % 12) + 12) % 12;

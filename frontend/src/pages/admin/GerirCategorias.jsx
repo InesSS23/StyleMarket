@@ -59,47 +59,6 @@ function GerirCategorias() {
     ).length;
   }
 
-  function obterIcone(nome) {
-    const nomeFormatado = nome.toLowerCase();
-
-    if (
-      nomeFormatado.includes("t-shirt") ||
-      nomeFormatado.includes("shirt") ||
-      nomeFormatado.includes("camisola") ||
-      nomeFormatado.includes("blusa")
-    ) {
-      return "👕";
-    }
-
-    if (nomeFormatado.includes("casaco")) {
-      return "🧥";
-    }
-
-    if (nomeFormatado.includes("calça")) {
-      return "👖";
-    }
-
-    if (
-      nomeFormatado.includes("vestido") ||
-      nomeFormatado.includes("saia")
-    ) {
-      return "👗";
-    }
-
-    if (nomeFormatado.includes("sapatilha")) {
-      return "👟";
-    }
-
-    if (
-      nomeFormatado.includes("acessório") ||
-      nomeFormatado.includes("acessorio")
-    ) {
-      return "🎒";
-    }
-
-    return "🏷️";
-  }
-
   function adicionarCategoria() {
     const nome = window.prompt("Nome da nova categoria:");
     const nomeFinal = nome?.trim();
@@ -202,7 +161,6 @@ function GerirCategorias() {
           <thead>
             <tr>
               <th>ID</th>
-              <th>Ícone</th>
               <th>Nome</th>
               <th>Produtos</th>
               <th>Ações</th>
@@ -212,7 +170,7 @@ function GerirCategorias() {
           <tbody>
             {carregando && (
               <tr>
-                <td colSpan="5" className="text-center text-muted">
+                <td colSpan="4" className="text-center text-muted">
                   A carregar categorias...
                 </td>
               </tr>
@@ -223,9 +181,6 @@ function GerirCategorias() {
                 <tr key={categoria.id}>
                   <td>#{categoria.id}</td>
 
-                  <td className="admin-category-icon">
-                    {obterIcone(categoria.name)}
-                  </td>
 
                   <td>
                     <strong>{categoria.name}</strong>
@@ -258,7 +213,7 @@ function GerirCategorias() {
 
             {!carregando && categorias.length === 0 && (
               <tr>
-                <td colSpan="5" className="text-center text-muted">
+                <td colSpan="4" className="text-center text-muted">
                   Ainda não existem categorias registadas.
                 </td>
               </tr>

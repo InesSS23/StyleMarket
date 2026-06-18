@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { guardarUtilizador } from "../utils/authUtils";
 import { tratarCarrinhoAposLogin } from "../utils/carrinhoUtils";
@@ -106,12 +106,15 @@ function Login() {
 
   return (
     <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 py-4 bg-light">
-      <div className="text-center mb-4">
-        <div className="text-primary fw-bold fs-3">
+      <div className="d-flex flex-column align-items-center text-center mb-4">
+        <Link
+          to="/"
+          className="text-primary fw-bold fs-3 text-decoration-none"
+        >
           StyleMarket
-        </div>
+        </Link>
 
-        <small className="text-muted">
+        <small className="d-block text-muted mt-1">
           Bem-vindo de volta!
         </small>
       </div>
@@ -124,10 +127,6 @@ function Login() {
         }}
       >
         <h2 className="fw-bold mb-1 fs-3">Login</h2>
-
-        <p className="text-muted small mb-4">
-          Entrada única para comprador, vendedor e administrador.
-        </p>
 
         {location.state?.from?.pathname ===
           "/finalizar-compra" && (

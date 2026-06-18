@@ -44,12 +44,11 @@ function Home() {
           <div className="row justify-content-center text-center">
             <div className="col-lg-8">
               <h1 className="display-4 fw-bold mb-3">
-                Compra e vende roupa online
+                Compre e vende roupa
               </h1>
 
               <p className="lead text-white-50 mb-4">
-                Uma plataforma simples para vendedores publicarem roupas e
-                compradores encontrarem peças únicas.
+                Uma plataforma pensada em si, no seu estilo, na sua loja
               </p>
 
               <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center">
@@ -81,8 +80,7 @@ function Home() {
                 <h5 className="fw-bold mb-3">Fácil de usar</h5>
 
                 <p className="text-muted mb-0">
-                  Interface simples para consultar produtos, comparar opções e
-                  comprar com poucos passos.
+                  Interface simples para consultar os seus produtos, comparar atualizar o seu armário
                 </p>
               </div>
             </div>
@@ -92,8 +90,7 @@ function Home() {
                 <h5 className="fw-bold mb-3">Compra organizada</h5>
 
                 <p className="text-muted mb-0">
-                  Carrinho, detalhes dos produtos e finalização de compra numa
-                  experiência clara.
+                  Carrinho, detalhes dos produtos e finalização de compra numa experiência clara
                 </p>
               </div>
             </div>
@@ -103,8 +100,7 @@ function Home() {
                 <h5 className="fw-bold mb-3">Vende mais</h5>
 
                 <p className="text-muted mb-0">
-                  Os vendedores podem divulgar roupas e gerir os seus produtos
-                  numa área própria.
+                  Divulgue os seus produtos
                 </p>
               </div>
             </div>
@@ -190,8 +186,7 @@ function Home() {
               <h2 className="fw-bold mb-2">Tens roupas para vender?</h2>
 
               <p className="text-muted mb-lg-0">
-                Cria uma conta, escolhe a opção de vendedor no registo e começa
-                a publicar os teus produtos na StyleMarket.
+                Cria uma conta, começa a publicar os teus produtos ou compras as tuas peças na StyleMarket
               </p>
             </div>
 

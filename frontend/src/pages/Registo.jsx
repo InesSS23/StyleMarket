@@ -1,6 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { guardarUtilizador } from "../utils/authUtils";
+import {
+  obterCarrinho,
+  tratarCarrinhoAposLogin,
+} from "../utils/carrinhoUtils";
 
 function Registo() {
   const navigate = useNavigate();
@@ -52,20 +57,30 @@ function Registo() {
       .post("/auth/registar", dadosRegisto)
       .then((response) => {
         if (response.data.success) {
-          setSucesso("Conta criada com sucesso. Já podes iniciar sessão.");
+          const user = response.data.data;
+          const carrinhoVisitante = obterCarrinho();
 
-          setName("");
-          setEmail("");
-          setPassword("");
-          setConfirmarPassword("");
-          setPretendeVender(false);
-          setStoreName("");
-          setStoreDescription("");
-          setStoreContact("");
+          /*
+            A nova conta fica logo com sessão iniciada.
+            Se for comprador, o carrinho de visitante é transferido
+            para o carrinho associado à nova conta.
+          */
+          guardarUtilizador(user, false);
+          tratarCarrinhoAposLogin(user);
 
-          setTimeout(() => {
-            navigate("/login");
-          }, 1200);
+          setSucesso("Conta criada com sucesso.");
+
+          if (user.role === "vendedor") {
+            navigate("/vendedor/dashboard", { replace: true });
+            return;
+          }
+
+          if (carrinhoVisitante.length > 0) {
+            navigate("/carrinho", { replace: true });
+            return;
+          }
+
+          navigate("/", { replace: true });
         } else {
           setErro("Não foi possível criar a conta.");
         }
@@ -84,11 +99,16 @@ function Registo() {
 
   return (
     <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 py-4 bg-light">
-      <div className="text-center mb-4">
-        <div className="d-flex align-items-center justify-content-center gap-2 mb-1 text-primary fw-bold fs-3">
-          <span>StyleMarket</span>
-        </div>
-        <small className="text-muted">Cria a tua conta</small>
+      <div className="d-flex flex-column align-items-center text-center mb-4">
+        <Link
+          to="/"
+          className="text-primary fw-bold fs-3 text-decoration-none"
+        >
+          StyleMarket
+        </Link>
+        <small className="d-block text-muted mt-1">
+          Cria a tua conta
+        </small>
       </div>
 
       <div
@@ -96,11 +116,6 @@ function Registo() {
         style={{ maxWidth: "520px", borderRadius: "1.25rem" }}
       >
         <h2 className="fw-bold mb-1 fs-3">Criar Conta</h2>
-
-        <p className="text-muted small mb-4">
-          O comprador é o perfil padrão. Ativa a opção de vendedor se quiseres
-          vender roupas na plataforma.
-        </p>
 
         {erro && (
           <div className="alert alert-danger p-2 small text-center">

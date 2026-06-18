@@ -102,9 +102,6 @@ function PerfilComprador() {
             O meu perfil
           </h1>
 
-          <p className="text-muted mb-0">
-            Consulta os dados associados à tua conta StyleMarket.
-          </p>
         </div>
 
         {erro && (
@@ -149,7 +146,7 @@ function PerfilComprador() {
                     </h2>
 
                     <p className="text-muted mb-0">
-                      Conta de comprador
+                      Comprador
                     </p>
                   </div>
 

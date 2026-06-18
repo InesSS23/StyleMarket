@@ -82,9 +82,6 @@ function PerfilVendedor() {
   return (
     <div className="container-fluid py-2">
       <div className="mb-4">
-        <span className="badge bg-primary-subtle text-primary mb-3">
-          Conta do vendedor
-        </span>
 
         <h1 className="fw-bold mb-2">
           Perfil da loja
