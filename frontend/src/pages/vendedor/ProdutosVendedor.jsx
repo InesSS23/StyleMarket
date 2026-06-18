@@ -6,6 +6,7 @@ import {
   calcularStockTotal,
   contarVariantesEsgotadas,
   obterCoresProduto,
+  obterImagensProduto,
   obterResumoVariantes,
   obterTamanhosProduto,
   obterVariantes,
@@ -294,9 +295,7 @@ function ProdutosVendedor() {
                   >
                     <td>
                       <img
-                        src={
-                          produto.image || "/images/produtos/sem-imagem.jpg"
-                        }
+                        src={obterImagensProduto(produto)[0]}
                         alt={produto.name}
                         className="rounded"
                         style={{

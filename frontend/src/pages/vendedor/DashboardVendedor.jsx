@@ -5,6 +5,7 @@ import { obterUtilizador } from "../../utils/authUtils";
 import {
   calcularStockTotal,
   contarVariantesEsgotadas,
+  obterImagensProduto,
   obterResumoVariantes,
   obterVariantes,
 } from "../../utils/produtoUtils";
@@ -275,10 +276,7 @@ function DashboardVendedor() {
                     >
                       <td>
                         <img
-                          src={
-                            produto.image ||
-                            "/images/produtos/sem-imagem.jpg"
-                          }
+                          src={obterImagensProduto(produto)[0]}
                           alt={produto.name}
                           className="rounded border"
                           style={{

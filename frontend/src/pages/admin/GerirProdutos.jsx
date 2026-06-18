@@ -169,7 +169,7 @@ function GerirProdutos() {
       });
   }
 
-  function verProduto(produto) {
+  function apresentarDetalhesProduto(produto) {
     const variantes = produto.productVariants || [];
     const imagens = produto.productImages || [];
 
@@ -190,6 +190,25 @@ function GerirProdutos() {
         `Imagens: ${imagens.length || (produto.image ? 1 : 0)}\n` +
         `Descrição: ${produto.description || "Sem descrição"}`
     );
+  }
+
+  function verProduto(produto) {
+    /*
+      A listagem recebe apenas a imagem de capa.
+      As restantes imagens só são pedidas quando o administrador abre os detalhes.
+    */
+    api
+      .get(`/produtos/obter/${produto.id}`)
+      .then((response) => {
+        if (response.data.success) {
+          apresentarDetalhesProduto(response.data.data);
+        } else {
+          window.alert("Não foi possível carregar os detalhes do produto.");
+        }
+      })
+      .catch(() => {
+        window.alert("Erro ao carregar os detalhes do produto.");
+      });
   }
 
   return (

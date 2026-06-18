@@ -10,7 +10,45 @@ const {
 
 const controllers = {};
 
-const includeProduto = [
+/*
+  Nas listagens é enviada apenas a imagem de capa de cada produto.
+  As restantes imagens só são carregadas quando se abre a página de detalhes.
+  Isto reduz bastante a transferência de dados da base online.
+*/
+const includeProdutoResumo = [
+  {
+    model: Category,
+    attributes: ["id", "name"],
+  },
+  {
+    model: ProductVariant,
+    separate: true,
+    order: [["id", "ASC"]],
+  },
+  {
+    model: ProductImage,
+    as: "productImages",
+    attributes: ["id", "image", "position", "isCover", "productId"],
+    separate: true,
+    limit: 1,
+    order: [
+      ["isCover", "DESC"],
+      ["position", "ASC"],
+      ["id", "ASC"],
+    ],
+  },
+  {
+    model: User,
+    as: "seller",
+    attributes: ["id", "name", "email", "storeName"],
+  },
+];
+
+/*
+  A versão completa é usada apenas na criação, edição e detalhes do produto,
+  onde são realmente necessárias todas as imagens.
+*/
+const includeProdutoCompleto = [
   {
     model: Category,
   },
@@ -157,7 +195,10 @@ async function substituirImagensProduto(
 controllers.listar = async (req, res) => {
   try {
     const data = await Product.findAll({
-      include: includeProduto,
+      attributes: {
+        exclude: ["image"],
+      },
+      include: includeProdutoResumo,
       order: [["id", "ASC"]],
     });
 
@@ -188,7 +229,10 @@ controllers.listarPorVendedor = async (req, res) => {
 
     const data = await Product.findAll({
       where: { sellerId },
-      include: includeProduto,
+      attributes: {
+        exclude: ["image"],
+      },
+      include: includeProdutoResumo,
       order: [["id", "ASC"]],
     });
 
@@ -302,7 +346,7 @@ controllers.criar = async (req, res) => {
     transaction = null;
 
     const produtoCriado = await Product.findByPk(produto.id, {
-      include: includeProduto,
+      include: includeProdutoCompleto,
     });
 
     res.status(201).json({
@@ -329,7 +373,7 @@ controllers.obter = async (req, res) => {
     const { id } = req.params;
 
     const data = await Product.findByPk(id, {
-      include: includeProduto,
+      include: includeProdutoCompleto,
     });
 
     if (!data) {
@@ -520,7 +564,7 @@ controllers.atualizar = async (req, res) => {
     transaction = null;
 
     const produtoAtualizado = await Product.findByPk(produto.id, {
-      include: includeProduto,
+      include: includeProdutoCompleto,
     });
 
     res.json({
