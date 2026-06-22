@@ -1,11 +1,3 @@
-
-# Loja	           Email	                      Palavra-passe
-Urban Thread	   marta.oliveira@example.com	  1234
-Aurora Boutique	   beatriz.martins@example.com	  1234
-North Denim	       tiago.ferreira@example.com	  1234
-Minimal Studio	   sofia.almeida@example.com	  1234
-Loop Accessories   ricardo.costa@example.com	  1234
-
 # contas modelo:  backend/src/config/dadosIniciais
 vendedor@s.com    1234
 comprador@s.com   1234
